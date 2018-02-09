@@ -10,7 +10,7 @@ extension UITextField {
         configurate?(self)
     }
     
-    func left(image: UIImage?, color: UIColor = .black) {
+    public func left(image: UIImage?, color: UIColor = .black) {
         if let image = image {
             leftViewMode = UITextFieldViewMode.always
             let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: 20, height: 20))
@@ -25,7 +25,7 @@ extension UITextField {
         }
     }
     
-    func right(image: UIImage?, color: UIColor = .black) {
+    public func right(image: UIImage?, color: UIColor = .black) {
         if let image = image {
             rightViewMode = UITextFieldViewMode.always
             let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: 20, height: 20))

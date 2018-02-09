@@ -7,15 +7,15 @@ extension UIAlertController {
     /// - Parameters:
     ///   - text: text kind
     
-    func addTextViewer(text: TextViewerViewController.Kind) {
+    public func addTextViewer(text: TextViewerViewController.Kind) {
         let textViewer = TextViewerViewController(text: text)
         set(vc: textViewer)
     }
 }
 
-final class TextViewerViewController: UIViewController {
+final public class TextViewerViewController: UIViewController {
     
-    enum Kind {
+    public enum Kind {
         
         case text(String?)
         case attributedText([AttributedTextBlock])
@@ -37,7 +37,7 @@ final class TextViewerViewController: UIViewController {
     }
     
     
-    init(text kind: Kind) {
+    public init(text kind: Kind) {
         super.init(nibName: nil, bundle: nil)
         
         switch kind {
@@ -50,7 +50,7 @@ final class TextViewerViewController: UIViewController {
         //preferredContentSize.height = self.textView.contentSize.height
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
@@ -58,11 +58,11 @@ final class TextViewerViewController: UIViewController {
         Log("has deinitialized")
     }
     
-    override func loadView() {
+    override public func loadView() {
         view = textView
     }
     
-    override func viewDidLoad() {
+    override public func viewDidLoad() {
         super.viewDidLoad()
         
         if UIDevice.current.userInterfaceIdiom == .pad {
@@ -70,12 +70,12 @@ final class TextViewerViewController: UIViewController {
         }
     }
     
-    override func viewDidAppear(_ animated: Bool) {
+    override public func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         textView.scrollToTop()
     }
     
-    override func viewDidLayoutSubviews() {
+    override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         preferredContentSize.height = textView.contentSize.height
         

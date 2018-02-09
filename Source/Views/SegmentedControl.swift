@@ -1,12 +1,12 @@
 import UIKit
 
-final class SegmentedControl: UISegmentedControl {
+final public class SegmentedControl: UISegmentedControl {
     
     public typealias Action = (Int) -> Swift.Void
     
-    fileprivate var action: Action?
+    internal var action: Action?
     
-    func action(new: Action?) {
+    public func action(new: Action?) {
         if action == nil {
             addTarget(self, action: #selector(segmentedControlValueChanged(segment:)), for: .valueChanged)
         }
