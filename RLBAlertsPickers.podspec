@@ -14,7 +14,8 @@ Pod::Spec.new do |s|
   s.homepage     = "https://github.com/Appsido/Alerts-Pickers.git"
   s.license      = "MIT"
   s.author       = { "dillidon" => "dillidon@gmail.com" }
-  s.ios.deployment_target = "11.0"
+  s.platform     = :ios, '11.0'
+  s.pod_target_xcconfig = { 'SWIFT_VERSION' => '4.0' }
   s.source       = { :git => "https://github.com/Appsido/Alerts-Pickers.git", :tag => "#{s.version}" }
   s.source_files  = "Source/**/*.{swift}"
   s.resource  = "Source/Pickers/Locale/Countries.bundle"
