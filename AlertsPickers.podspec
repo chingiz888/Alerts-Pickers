@@ -8,16 +8,15 @@
 
 Pod::Spec.new do |s|
 
-  s.name         = "AlertsPickers"
+  s.name         = "RLBAlertsPickers"
   s.version      = "1.0"
   s.summary      = "Advanced usage of UIAlertController with TextField, DatePicker, PickerView, TableView and CollectionView."
-  s.homepage     = "https://github.com/dillidon/Alerts-Pickers"
+  s.homepage     = "https://github.com/Appsido/Alerts-Pickers.git"
   s.license      = "MIT"
-  s.author             = { "dillidon" => "dillidon@gmail.com" }
-  s.osx.deployment_target = "10.9"
-  s.ios.deployment_target = "10.0"
-  s.source       = { :git => "git@github.com:dillidon/Alerts-Pickers.git", :tag => "#{s.version}" }
+  s.author       = { "dillidon" => "dillidon@gmail.com" }
+  s.ios.deployment_target = "11.0"
+  s.source       = { :git => "https://github.com/Appsido/Alerts-Pickers.git", :tag => "#{s.version}" }
   s.source_files  = "Source/**/*.{swift}"
-  s.resource  = "Source/Pickers/Countries.bundle"
+  s.resource  = "Source/Pickers/Locale/Countries.bundle"
 
 end
