@@ -10,9 +10,10 @@ extension UIAlertController {
     ///   - minimumDate: minimum date of date picker
     ///   - maximumDate: maximum date of date picker
     ///   - action: an action for datePicker value change
+    
     func addDatePicker(mode: UIDatePickerMode, date: Date?, minimumDate: Date? = nil, maximumDate: Date? = nil, action: DatePickerViewController.Action?) {
         let datePicker = DatePickerViewController(mode: mode, date: date, minimumDate: minimumDate, maximumDate: maximumDate, action: action)
-        set(vc: datePicker, height: 216)
+        set(vc: datePicker, height: 217)
     }
 }
 
@@ -22,7 +23,7 @@ final class DatePickerViewController: UIViewController {
     
     fileprivate var action: Action?
     
-    fileprivate lazy var datePicker: UIDatePicker = {
+    fileprivate lazy var datePicker: UIDatePicker = { [unowned self] in
         $0.addTarget(self, action: #selector(DatePickerViewController.actionForDatePicker), for: .valueChanged)
         return $0
     }(UIDatePicker())
