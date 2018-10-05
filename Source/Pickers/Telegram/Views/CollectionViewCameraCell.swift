@@ -4,21 +4,56 @@ import AVFoundation
 
 public typealias CollectionViewCameraCell = CollectionViewCustomContentCell<CameraView>
 
-public class CameraView: UIView {
+public final class CameraView: UIView {
     
-    private var videoLayer: AVCaptureVideoPreviewLayer? = nil
-    
-    public func setup(stream: Camera.PreviewStream) {
-        guard  !isRepresentingStream(stream) else {
-            return
+    public final class RepresentedStream: Equatable {
+        
+        fileprivate let cameraStream: Camera.PreviewStream
+        
+        fileprivate let layer: AVCaptureVideoPreviewLayer
+        
+        fileprivate init(layer: AVCaptureVideoPreviewLayer, stream: Camera.PreviewStream) {
+            self.layer = layer
+            self.cameraStream = stream
         }
         
-        self.reset()
+        public static func == (lhs: RepresentedStream, rhs: RepresentedStream) -> Bool {
+            return lhs.layer.session == rhs.layer.session
+        }
         
-        let newVideoLayer = AVCaptureVideoPreviewLayer.init(session: stream.session)
+        public class func create(cameraStream: Camera.PreviewStream, completionHandler: @escaping (RepresentedStream)->()) {
+            DispatchQueue.global(qos: .background).async {
+                
+                let newVideoLayer = AVCaptureVideoPreviewLayer.init(session: cameraStream.session)
+                cameraStream.startIfNeeded()
+                let representedStream = RepresentedStream.init(layer: newVideoLayer, stream: cameraStream)
+                
+                DispatchQueue.main.async {
+                    completionHandler(representedStream)
+                }
+            }
+        }
         
-        layer.addSublayer(newVideoLayer)
-        videoLayer = newVideoLayer
+    }
+    
+    public var representedStream: RepresentedStream? = nil {
+        didSet {
+            guard representedStream != oldValue else {
+                return
+            }
+            
+            if let oldValue = oldValue {
+                oldValue.layer.removeFromSuperlayer()
+            }
+            
+            if let stream = representedStream {
+                self.layer.addSublayer(stream.layer)
+            }
+        }
+    }
+    
+    private var videoLayer: AVCaptureVideoPreviewLayer? {
+        return self.representedStream?.layer
     }
     
     public override func layoutSubviews() {
@@ -30,11 +65,10 @@ public class CameraView: UIView {
     }
     
     public func reset() {
-        self.videoLayer?.removeFromSuperlayer()
-        self.videoLayer = nil
+        self.representedStream = nil
     }
     
-    public func isRepresentingStream(_ stream: Camera.PreviewStream) -> Bool {
+    public func isRepresentingCameraStream(_ stream: Camera.PreviewStream) -> Bool {
         if let layer = videoLayer, let session = layer.session {
             return session === stream.session
         }

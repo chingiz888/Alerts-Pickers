@@ -124,6 +124,12 @@ final public class TelegramPickerViewController: UIViewController {
         return cameraCellNeeded && cameraStream != nil
     }
     
+    private var visibleItemEntries: [(indexPath: IndexPath, item: StreamItem)] {
+        let indexPaths = collectionView.indexPathsForVisibleItems
+        let entries: [(indexPath: IndexPath, item: StreamItem)] = indexPaths.map({ (indexPath: $0, item: items[$0.item]) })
+        return entries
+    }
+    
     func sizeFor(asset: PHAsset) -> CGSize {
         let height: CGFloat = UI.maxHeight
         let width: CGFloat = CGFloat(Double(height) * Double(asset.pixelWidth) / Double(asset.pixelHeight))
@@ -252,7 +258,6 @@ final public class TelegramPickerViewController: UIViewController {
         var hasCameraItem = false
         var itemsChanged = false
         
-        
         if let first = newItems.first, first.isCamera {
             hasCameraItem = true
         }
@@ -314,7 +319,7 @@ final public class TelegramPickerViewController: UIViewController {
                     print("Error while setup camera stream. \(error.localizedDescription)")
                     completionHandler(nil)
                 case .stream(let stream):
-                    self.cameraStream = stream
+                    completionHandler(stream)
                 }
             }
         }
@@ -420,14 +425,9 @@ final public class TelegramPickerViewController: UIViewController {
         let becomeEmpty = selectedAssets.isEmpty
 
         if (wasEmpty != becomeEmpty) {
-            UIView.animate(withDuration: 0.25, animations: {
-                self.layout.invalidateLayout()
-            }) { _ in
-                self.layoutSubviews()
-                DispatchQueue.main.async {
-                    self.collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
-                }
-            }
+            self.layout.invalidateLayout()
+            self.layoutSubviews()
+            self.collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
         } else {
             collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
         }
@@ -520,14 +520,17 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
         
     }
     
+    private func isCameraCellRepresentingCurrentStream(_ cell: CollectionViewCameraCell) -> Bool {
+        guard let stream = self.cameraStream else {
+            return cell.customContentView.representedStream == nil
+        }
+        return cell.customContentView.isRepresentingCameraStream(stream)
+    }
+    
     private func dequeue(_ collectionView: UICollectionView, cellForCameraAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell: CollectionViewCameraCell = dequeue(collectionView, id: .camera, indexPath: indexPath)
         
-        if let stream = self.cameraStream {
-            stream.startIfNeeded()
-            cell.customContentView.setup(stream: stream)
-        }
-        else {
+        if !isCameraCellRepresentingCurrentStream(cell) {
             cell.customContentView.reset()
         }
         
@@ -557,24 +560,58 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
             DispatchQueue.main.async {
                 // We must sure that cell still visible and represents same asset
                 Assets.resolve(asset: asset, size: size) { [weak self] new in
-                    self?.updatePhoto(new, indexPath: indexPath, asset: asset)
+                    self?.updatePhoto(new, asset: asset)
                     photoCell.customContentView.image = new
                 }
             }
-        default:
-            break
+            
+        case .camera:
+            guard let cameraCell = cell as? CollectionViewCameraCell else {
+                return
+            }
+            
+            guard !isCameraCellRepresentingCurrentStream(cameraCell) else {
+                return
+            }
+            
+            if let stream = cameraStream {
+                CameraView.RepresentedStream.create(cameraStream: stream) { (viewStream) in
+                    self.updateCamera(stream, represented: viewStream, indexPath: indexPath)
+                }
+            }
+            
         }
     }
     
-    private func updatePhoto(_ photo: UIImage?, indexPath: IndexPath, asset: PHAsset) {
-        switch self.items[indexPath.item] {
-        case .photo(let currentAsset):
-            if currentAsset == asset,
-                let cell = self.collectionView.cellForItem(at: indexPath) as? CollectionViewPhotoCell {
-                cell.customContentView.image = photo
+    private func updatePhoto(_ photo: UIImage?, asset: PHAsset) {
+        for entry in visibleItemEntries {
+            switch entry.item {
+            case .photo(let itemAsset):
+                if asset == itemAsset, let cell = collectionView.cellForItem(at: entry.indexPath) as? CollectionViewPhotoCell {
+                    cell.customContentView.image = photo
+                }
+            default:
+                continue
             }
-        default:
-            break
+        }
+    }
+    
+    private func updateCamera(_ stream: Camera.PreviewStream, represented: CameraView.RepresentedStream, indexPath: IndexPath) {
+        
+        for entry in visibleItemEntries {
+            switch entry.item {
+            case .camera:
+                guard let cell = collectionView.cellForItem(at: indexPath) as? CollectionViewCameraCell else {
+                    return
+                }
+                
+                if !cell.customContentView.isRepresentingCameraStream(stream) {
+                    cell.customContentView.representedStream = represented
+                }
+                
+            default:
+                continue
+            }
         }
     }
     
