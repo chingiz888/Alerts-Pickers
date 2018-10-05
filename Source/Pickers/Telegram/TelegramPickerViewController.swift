@@ -29,9 +29,7 @@ extension UIAlertController {
 final public class TelegramPickerViewController: UIViewController {
 
     var buttons: [ButtonType] {
-        return selectedAssets.count == 0
-            ? [.photoOrVideo, .location, .contact]
-            : [.sendPhotos]
+        return selectedAssets.isEmpty ? [.photoOrVideo, .location, .contact] : [.sendPhotos]
     }
     
     enum ButtonType {
@@ -73,7 +71,7 @@ final public class TelegramPickerViewController: UIViewController {
     }
     
     var preferredHeight: CGFloat {
-        return UI.maxHeight / (selectedAssets.count == 0 ? UI.multiplier : 1) + UI.insets.top + UI.insets.bottom
+        return UI.maxHeight / (selectedAssets.isEmpty ? UI.multiplier : 1) + UI.insets.top + UI.insets.bottom
     }
     
     func sizeFor(asset: PHAsset) -> CGSize {
@@ -172,7 +170,17 @@ final public class TelegramPickerViewController: UIViewController {
     }
     
     func layoutSubviews() {
+        
+        let initialHeight: CGFloat = tableView.tableHeaderView?.height ?? 0.0
+        
         tableView.tableHeaderView?.height = preferredHeight
+        
+        let resultHeight: CGFloat = tableView.tableHeaderView?.height ?? 0.0
+        
+        if initialHeight != resultHeight {
+            tableView.reloadData()
+        }
+        
         preferredContentSize.height = tableView.contentSize.height
     }
     
@@ -240,19 +248,25 @@ final public class TelegramPickerViewController: UIViewController {
     }
     
     func action(withAsset asset: PHAsset, at indexPath: IndexPath) {
-        let previousCount = selectedAssets.count
+        
+        let wasEmpty = selectedAssets.isEmpty
         
         selectedAssets.contains(asset)
             ? selectedAssets.remove(asset)
             : selectedAssets.append(asset)
         selection?(TelegramSelectionType.photo(selectedAssets))
         
-        let currentCount = selectedAssets.count
+        let becomeEmpty = selectedAssets.isEmpty
 
-        if (previousCount == 0 && currentCount > 0) || (previousCount > 0 && currentCount == 0) {
+        if (wasEmpty != becomeEmpty) {
             UIView.animate(withDuration: 0.25, animations: {
                 self.layout.invalidateLayout()
-            }) { finished in self.layoutSubviews() }
+            }) { _ in
+                self.layoutSubviews()
+                DispatchQueue.main.async {
+                    self.collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
+                }
+            }
         } else {
             collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
         }
