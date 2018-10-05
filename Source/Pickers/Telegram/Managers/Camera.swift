@@ -53,6 +53,11 @@ public final class Camera {
             self.device = device
         }
         
+        deinit {
+            session.stopRunning()
+            session.removeInput(self.input)
+        }
+        
         public func startIfNeeded() {
             
             guard !session.isRunning else {
