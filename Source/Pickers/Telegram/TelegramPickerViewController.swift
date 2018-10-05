@@ -76,7 +76,6 @@ final public class TelegramPickerViewController: UIViewController {
         static let minimumLineSpacing: CGFloat = 6
         static let maxHeight: CGFloat = UIScreen.main.bounds.width / 2
         static let multiplier: CGFloat = 2
-        static let animationDuration: TimeInterval = 0.3
     }
     
     private var photoLayout: VerticalScrollFlowLayout {
@@ -511,7 +510,6 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
         
         switch items[indexPath.item] {
         case .camera:
-            // FIXME: another cell should be picked
             return dequeue(collectionView, cellForCameraAt: indexPath)
             
         case .photo(let asset):
@@ -529,7 +527,7 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
     
     private func dequeue(_ collectionView: UICollectionView, cellForCameraAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell: CollectionViewCameraCell = dequeue(collectionView, id: .camera, indexPath: indexPath)
-        
+        cell.showSelectionCircles = false
         if !isCameraCellRepresentingCurrentStream(cell) {
             cell.customContentView.reset()
         }
@@ -598,19 +596,14 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
     
     private func updateCamera(_ stream: Camera.PreviewStream, represented: CameraView.RepresentedStream, indexPath: IndexPath) {
         
-        for entry in visibleItemEntries {
-            switch entry.item {
-            case .camera:
-                guard let cell = collectionView.cellForItem(at: indexPath) as? CollectionViewCameraCell else {
-                    return
-                }
-                
-                if !cell.customContentView.isRepresentingCameraStream(stream) {
-                    cell.customContentView.representedStream = represented
-                }
-                
-            default:
-                continue
+        for entry in visibleItemEntries where entry.item.isCamera {
+            
+            guard let cell = collectionView.cellForItem(at: indexPath) as? CollectionViewCameraCell else {
+                return
+            }
+            
+            if !cell.customContentView.isRepresentingCameraStream(stream) {
+                cell.customContentView.representedStream = represented
             }
         }
     }

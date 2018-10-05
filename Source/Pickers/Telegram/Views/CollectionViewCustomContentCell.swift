@@ -52,6 +52,14 @@ public final class CollectionViewCustomContentCell<CustomContentView: UIView>: U
         setup()
     }
     
+    public var showSelectionCircles: Bool = true {
+        didSet {
+            if showSelectionCircles != oldValue {
+                updateSelectionAppearance()
+            }
+        }
+    }
+    
     public func setup() {
         backgroundColor = .clear
         
@@ -71,6 +79,11 @@ public final class CollectionViewCustomContentCell<CustomContentView: UIView>: U
         
         customContentView.frame = contentView.frame
         customContentView.cornerRadius = 12
+        
+        updateSelectionAppearance()
+    }
+    
+    func updateSelectionAppearance() {
         updateAppearance(forCircle: unselectedCircle)
         updateAppearance(forCircle: selectedCircle)
         updateAppearance(forPoint: selectedPoint)
@@ -88,12 +101,14 @@ public final class CollectionViewCustomContentCell<CustomContentView: UIView>: U
         view.shadowPath = UIBezierPath(roundedRect: unselectedCircle.bounds, byRoundingCorners: .allCorners, cornerRadii: CGSize(width: unselectedCircle.bounds.width / 2, height: unselectedCircle.bounds.width / 2)).cgPath
         view.shadowShouldRasterize = true
         view.shadowRasterizationScale = UIScreen.main.scale
+        view.isHidden = !showSelectionCircles
     }
     
     func updateAppearance(forPoint view: UIView) {
         view.frame.size = CGSize(width: unselectedCircle.width - unselectedCircle.borderWidth * 2, height: unselectedCircle.height - unselectedCircle.borderWidth * 2)
         view.center = selectedCircle.center
         view.circleCorner = true
+        view.isHidden = !showSelectionCircles
     }
     
     override public func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
