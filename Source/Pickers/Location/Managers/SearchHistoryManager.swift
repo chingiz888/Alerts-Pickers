@@ -52,21 +52,22 @@ extension CLLocationCoordinate2D {
 
 extension Location {
     
-	func toDefaultsDic() -> NSDictionary? {
-		guard let postalAddress = placemark.postalAddress,
-			let placemarkCoordinatesDic = placemark.location?.coordinate.toDefaultsDic()
-			else { return nil }
-		
+    func toDefaultsDic() -> NSDictionary? {
+        
+        guard let postalAddress = placemark.postalAddressIfAvailable,
+            let placemarkCoordinatesDic = placemark.location?.coordinate.toDefaultsDic()
+            else { return nil }
+        
         let formatter = CNPostalAddressFormatter()
         let addressDic = formatter.string(from: postalAddress)
         
-		var dic: [String: AnyObject] = [
-			LocationDicKeys.locationCoordinates: location.coordinate.toDefaultsDic(),
-			LocationDicKeys.placemarkAddressDic: addressDic as AnyObject,
-			LocationDicKeys.placemarkCoordinates: placemarkCoordinatesDic
-		]
-		if let name = name { dic[LocationDicKeys.name] = name as AnyObject? }
-		return dic as NSDictionary?
+        var dic: [String: AnyObject] = [
+            LocationDicKeys.locationCoordinates: location.coordinate.toDefaultsDic(),
+            LocationDicKeys.placemarkAddressDic: addressDic as AnyObject,
+            LocationDicKeys.placemarkCoordinates: placemarkCoordinatesDic
+        ]
+        if let name = name { dic[LocationDicKeys.name] = name as AnyObject? }
+        return dic as NSDictionary?
 	}
 	
 	class func fromDefaultsDic(_ dic: NSDictionary) -> Location? {

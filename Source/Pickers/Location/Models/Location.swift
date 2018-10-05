@@ -12,7 +12,7 @@ public class Location: NSObject {
 	public let placemark: CLPlacemark
 	
 	public var address: String {
-        if let postalAddress = placemark.postalAddress {
+        if let postalAddress = placemark.postalAddressIfAvailable {
             let formatter = CNPostalAddressFormatter()
             formatter.style = .mailingAddress
             return formatter.string(from: postalAddress)
