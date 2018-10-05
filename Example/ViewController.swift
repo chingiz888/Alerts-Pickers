@@ -406,7 +406,7 @@ class ViewController: UIViewController {
             
         case .telegramPicker:
             let alert = UIAlertController(style: .actionSheet)
-            alert.addTelegramPicker { result in
+            alert.addTelegramPicker { [weak alert] result in
                 switch result {
                 case .photo(let assets):
                     Log(assets)
@@ -416,6 +416,7 @@ class ViewController: UIViewController {
                     Log(location)
                 case .camera(let stream):
                     Log(stream)
+                    alert?.dismiss(animated: true, completion: nil)
                 }
             }
             alert.addAction(title: "Cancel", style: .cancel)
