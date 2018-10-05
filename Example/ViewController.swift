@@ -85,7 +85,24 @@ class ViewController: UIViewController {
         }
     }
     
-    fileprivate lazy var alerts: [AlertType] = [.simple, .simpleWithImages, .oneTextField, .twoTextFields, .dataPicker, .pickerView, .countryPicker, .phoneCodePicker, .currencyPicker, .imagePicker, .photoLibraryPicker, .colorPicker, .textViewer, .contactsPicker, .locationPicker, .telegramPicker]
+    fileprivate lazy var alerts: [AlertType] = [
+        .telegramPicker,
+        .simple,
+        .simpleWithImages,
+        .oneTextField,
+        .twoTextFields,
+        .dataPicker,
+        .pickerView,
+        .countryPicker,
+        .phoneCodePicker,
+        .currencyPicker,
+        .imagePicker,
+        .photoLibraryPicker,
+        .colorPicker,
+        .textViewer,
+        .contactsPicker,
+        .locationPicker
+    ]
     
     // MARK: UI Metrics
     
@@ -397,6 +414,8 @@ class ViewController: UIViewController {
                     Log(contact)
                 case .location(let location):
                     Log(location)
+                case .camera(let stream):
+                    Log(stream)
                 }
             }
             alert.addAction(title: "Cancel", style: .cancel)

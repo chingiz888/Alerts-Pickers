@@ -1,13 +1,23 @@
+//
+//  CollectionViewCustomContentCell.swift
+//  Alerts&Pickers
+//
+//  Created by Lex on 05.10.2018.
+//  Copyright © 2018 Supreme Apps. All rights reserved.
+//
+
+import Foundation
+
 import UIKit
 
-final class ItemWithPhoto: UICollectionViewCell {
+public final class CollectionViewCustomContentCell<CustomContentView: UIView>: UICollectionViewCell {
     
-    lazy var imageView: UIImageView = {
+    lazy var customContentView: CustomContentView = {
         $0.backgroundColor = .clear
         $0.contentMode = .scaleAspectFill
         $0.maskToBounds = true
         return $0
-    }(UIImageView())
+    }(CustomContentView())
     
     lazy var unselectedCircle: UIView = {
         $0.backgroundColor = .clear
@@ -46,7 +56,7 @@ final class ItemWithPhoto: UICollectionViewCell {
         backgroundColor = .clear
         
         let unselected: UIView = UIView()
-        unselected.addSubview(imageView)
+        unselected.addSubview(customContentView)
         unselected.addSubview(unselectedCircle)
         backgroundView = unselected
         
@@ -58,8 +68,9 @@ final class ItemWithPhoto: UICollectionViewCell {
     
     override public func layoutSubviews() {
         super.layoutSubviews()
-        imageView.frame = contentView.frame
-        imageView.cornerRadius = 12
+        
+        customContentView.frame = contentView.frame
+        customContentView.cornerRadius = 12
         updateAppearance(forCircle: unselectedCircle)
         updateAppearance(forCircle: selectedCircle)
         updateAppearance(forPoint: selectedPoint)
@@ -67,7 +78,7 @@ final class ItemWithPhoto: UICollectionViewCell {
     
     func updateAppearance(forCircle view: UIView) {
         view.frame.size = CGSize(width: 28, height: 28)
-        view.frame.origin.x = imageView.bounds.width - unselectedCircle.bounds.width - inset
+        view.frame.origin.x = customContentView.bounds.width - unselectedCircle.bounds.width - inset
         view.frame.origin.y = inset
         view.circleCorner = true
         view.shadowColor = UIColor.black.withAlphaComponent(0.4)
@@ -85,7 +96,7 @@ final class ItemWithPhoto: UICollectionViewCell {
         view.circleCorner = true
     }
     
-    override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
+    override public func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
         super.apply(layoutAttributes)
         layoutIfNeeded()
     }

@@ -9,6 +9,7 @@ public enum TelegramSelectionType {
     case photo([PHAsset])
     case location(Location?)
     case contact(Contact?)
+    case camera(Camera.PreviewStream)
 }
 
 extension UIAlertController {
@@ -41,6 +42,31 @@ final public class TelegramPickerViewController: UIViewController {
         case sendAsFile
     }
     
+    enum StreamItem: Equatable {
+        case photo(PHAsset)
+        case camera
+        
+        var isCamera: Bool {
+            switch self {
+            case .camera: return true
+            default: return false
+            }
+        }
+        
+        public static func == (lhs: StreamItem, rhs: StreamItem) -> Bool {
+            switch (lhs, rhs) {
+            case (let .photo(lhsAsset), let .photo(rhsAsset)): return lhsAsset == rhsAsset
+            case (.camera, .camera): return true
+            default: return false
+            }
+        }
+    }
+    
+    enum CellId: String {
+        case photo
+        case camera
+    }
+    
     // MARK: UI
     
     struct UI {
@@ -51,6 +77,10 @@ final public class TelegramPickerViewController: UIViewController {
         static let maxHeight: CGFloat = UIScreen.main.bounds.width / 2
         static let multiplier: CGFloat = 2
         static let animationDuration: TimeInterval = 0.3
+    }
+    
+    private var photoLayout: VerticalScrollFlowLayout {
+        return self.collectionView.collectionViewLayout as! VerticalScrollFlowLayout
     }
     
     func title(for button: ButtonType) -> String {
@@ -74,6 +104,26 @@ final public class TelegramPickerViewController: UIViewController {
         return UI.maxHeight / (selectedAssets.isEmpty ? UI.multiplier : 1) + UI.insets.top + UI.insets.bottom
     }
     
+    public var cameraCellNeeded: Bool = true {
+        didSet {
+            if cameraCellNeeded != oldValue, isViewLoaded {
+                resetItems()
+            }
+        }
+    }
+    
+    public var cameraStream: Camera.PreviewStream? = nil {
+        didSet {
+            if cameraStream !== oldValue, isViewLoaded {
+                resetItems()
+            }
+        }
+    }
+    
+    public var shouldShowCameraStream: Bool {
+        return cameraCellNeeded && cameraStream != nil
+    }
+    
     func sizeFor(asset: PHAsset) -> CGSize {
         let height: CGFloat = UI.maxHeight
         let width: CGFloat = CGFloat(Double(height) * Double(asset.pixelWidth) / Double(asset.pixelHeight))
@@ -82,11 +132,21 @@ final public class TelegramPickerViewController: UIViewController {
     
     func sizeForItem(asset: PHAsset) -> CGSize {
         let size: CGSize = sizeFor(asset: asset)
-        if selectedAssets.count == 0 {
+        if selectedAssets.isEmpty {
             let value: CGFloat = size.height / UI.multiplier
             return CGSize(width: value, height: value)
         } else {
             return size
+        }
+    }
+    
+    func sizeForItem(item: StreamItem) -> CGSize {
+        switch item {
+        case .camera:
+            let side = self.layout.proposedItemHeight
+            return CGSize.init(width: side, height: side)
+        case .photo(let asset):
+            return sizeForItem(asset: asset)
         }
     }
     
@@ -104,7 +164,8 @@ final public class TelegramPickerViewController: UIViewController {
         $0.backgroundColor = .clear
         $0.maskToBounds = false
         $0.clipsToBounds = false
-        $0.register(ItemWithPhoto.self, forCellWithReuseIdentifier: String(describing: ItemWithPhoto.self))
+        $0.register(CollectionViewPhotoCell.self, forCellWithReuseIdentifier: CellId.photo.rawValue)
+        $0.register(CollectionViewCameraCell.self, forCellWithReuseIdentifier: CellId.camera.rawValue)
         
         return $0
         }(UICollectionView(frame: .zero, collectionViewLayout: layout))
@@ -130,7 +191,7 @@ final public class TelegramPickerViewController: UIViewController {
         return $0
         }(UITableView(frame: .zero, style: .plain))
     
-    lazy var assets = [PHAsset]()
+    lazy var items = [StreamItem]()
     lazy var selectedAssets = [PHAsset]()
     
     var selection: TelegramSelection?
@@ -162,6 +223,7 @@ final public class TelegramPickerViewController: UIViewController {
         }
         
         updatePhotos()
+        updateCamera()
     }
         
     override public func viewDidLayoutSubviews() {
@@ -184,16 +246,104 @@ final public class TelegramPickerViewController: UIViewController {
         preferredContentSize.height = tableView.contentSize.height
     }
     
+    func resetItems() {
+        
+        var newItems = items
+        var hasCameraItem = false
+        var itemsChanged = false
+        
+        
+        if let first = newItems.first, first.isCamera {
+            hasCameraItem = true
+        }
+        
+        if self.shouldShowCameraStream && !hasCameraItem {
+            newItems.insert(.camera, at: 0)
+            itemsChanged = true
+        }
+        else if !self.shouldShowCameraStream && hasCameraItem {
+            newItems.remove(at: 0)
+            itemsChanged = true
+        }
+        
+        guard itemsChanged else {
+            return
+        }
+        
+        resetItems(newItems: newItems)
+    }
+    
+    func resetItems(assets: [PHAsset]) {
+        
+        var newItems = assets.map({StreamItem.photo($0)})
+        if self.shouldShowCameraStream {
+            newItems.insert(.camera, at: 0)
+        }
+       
+        resetItems(newItems: newItems)
+    }
+    
+    func resetItems(newItems: [StreamItem]) {
+        items = newItems
+        tableView.reloadData()
+        collectionView.reloadData()
+    }
+    
+    func updateCamera() {
+        guard self.cameraCellNeeded else {
+            self.cameraStream = nil
+            return
+        }
+        
+        self.checkCameraState { [weak self] (stream) in
+            self?.cameraStream = stream
+        }
+    }
+    
     func updatePhotos() {
-        checkStatus { [unowned self] assets in
-            
-            self.assets.removeAll()
-            self.assets.append(contentsOf: assets)
-            
+        checkStatus { [weak self] assets in
+            self?.resetItems(assets: assets)
+        }
+    }
+    
+    func setupCameraStream(_ completionHandler: @escaping (Camera.PreviewStream?) -> ()) {
+        Camera.PreviewStream.create { (result) in
             DispatchQueue.main.async {
-                self.tableView.reloadData()
-                self.collectionView.reloadData()
+                switch result {
+                case .error(error: let error):
+                    print("Error while setup camera stream. \(error.localizedDescription)")
+                    completionHandler(nil)
+                case .stream(let stream):
+                    self.cameraStream = stream
+                }
             }
+        }
+    }
+    
+    func checkCameraState(completionHandler: @escaping (Camera.PreviewStream?)->()) {
+        
+        /// This case means the user is prompted for the first time for camera access
+        switch Camera.authorizationStatus {
+        case .notDetermined:
+            Camera.requestAccess { [weak self] (_) in
+                self?.checkCameraState(completionHandler: completionHandler)
+            }
+        case .authorized:
+            self.setupCameraStream(completionHandler)
+            
+        case .denied, .restricted:
+            /// User has denied the current app to access the camera.
+            let productName = Bundle.main.infoDictionary!["CFBundleName"]!
+            let alert = UIAlertController(style: .alert, title: "Permission denied", message: "\(productName) does not have access to camera. Please, allow the application to access to camera.")
+            alert.addAction(title: "Settings", style: .destructive) { action in
+                if let settingsURL = URL(string: UIApplicationOpenSettingsURLString) {
+                    UIApplication.shared.open(settingsURL)
+                }
+            }
+            alert.addAction(title: "OK", style: .cancel) { [unowned self] action in
+                self.alertController?.dismiss(animated: true)
+            }
+            alert.show()
         }
     }
     
@@ -230,7 +380,7 @@ final public class TelegramPickerViewController: UIViewController {
     }
     
     func fetchPhotos(completionHandler: @escaping ([PHAsset]) -> ()) {
-        Assets.fetch { [unowned self] result in
+        Assets.fetch { [weak self] result in
             switch result {
                 
             case .success(let assets):
@@ -239,11 +389,22 @@ final public class TelegramPickerViewController: UIViewController {
             case .error(let error):
                 Log("------ error")
                 let alert = UIAlertController(style: .alert, title: "Error", message: error.localizedDescription)
-                alert.addAction(title: "OK") { [unowned self] action in
-                    self.alertController?.dismiss(animated: true)
+                alert.addAction(title: "OK") { [weak self] action in
+                    self?.alertController?.dismiss(animated: true)
                 }
                 alert.show()
             }
+        }
+    }
+    
+    func action(withItem item: StreamItem, at indexPath: IndexPath) {
+        switch item {
+        case .camera:
+            if let stream = self.cameraStream {
+                self.selection?(.camera(stream))
+            }
+        case .photo(let asset):
+            self.action(withAsset: asset, at: indexPath)
         }
     }
     
@@ -313,13 +474,25 @@ final public class TelegramPickerViewController: UIViewController {
 extension TelegramPickerViewController: UICollectionViewDelegate {
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        layout.selectedCellIndexPath = layout.selectedCellIndexPath == indexPath ? nil : indexPath
-        action(withAsset: assets[indexPath.item], at: indexPath)
+        if isSelectableItem(at: indexPath, collectionView: collectionView) {
+            layout.selectedCellIndexPath = layout.selectedCellIndexPath == indexPath ? nil : indexPath
+        }
+        action(withItem: items[indexPath.item], at: indexPath)
     }
     
     public func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
-        action(withAsset: assets[indexPath.item], at: indexPath)
+        action(withItem: items[indexPath.item], at: indexPath)
     }
+    
+    private func isSelectableItem(at indexPath: IndexPath, collectionView: UICollectionView) -> Bool {
+        switch items[indexPath.item] {
+        case .camera:
+            return false
+        case .photo(_):
+            return true
+        }
+    }
+    
 }
 
 // MARK: - CollectionViewDataSource
@@ -331,31 +504,88 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
     }
     
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return assets.count
+        return items.count
     }
     
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let item = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: ItemWithPhoto.self), for: indexPath) as? ItemWithPhoto else { return UICollectionViewCell() }
         
-        let asset = assets[indexPath.item]
-        let size = sizeFor(asset: asset)
-        
-        DispatchQueue.main.async {
-            Assets.resolve(asset: asset, size: size) { new in
-                item.imageView.image = new
-            }
+        switch items[indexPath.item] {
+        case .camera:
+            // FIXME: another cell should be picked
+            return dequeue(collectionView, cellForCameraAt: indexPath)
+            
+        case .photo(let asset):
+            return dequeue(collectionView, cellForAsset: asset, at: indexPath)
         }
         
-        return item
     }
+    
+    private func dequeue(_ collectionView: UICollectionView, cellForCameraAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell: CollectionViewCameraCell = dequeue(collectionView, id: .camera, indexPath: indexPath)
+        
+        if let stream = self.cameraStream {
+            stream.startIfNeeded()
+            cell.customContentView.setup(stream: stream)
+        }
+        else {
+            cell.customContentView.reset()
+        }
+        
+        return cell
+    }
+    
+    private func dequeue(_ collectionView: UICollectionView,
+                         cellForAsset asset: PHAsset,
+                         at indexPath: IndexPath) -> UICollectionViewCell {
+        let cell: CollectionViewPhotoCell = dequeue(collectionView, id: .photo, indexPath: indexPath)
+        cell.customContentView.image = nil
+        return cell
+    }
+    
+    private func dequeue<CellClass>(_ collectionView: UICollectionView, id: CellId, indexPath: IndexPath) -> CellClass {
+        return collectionView.dequeueReusableCell(withReuseIdentifier: id.rawValue, for: indexPath) as! CellClass
+    }
+    
+    public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        switch items[indexPath.item] {
+        case .photo(let asset):
+            guard let photoCell = cell as? CollectionViewPhotoCell else {
+                return
+            }
+            
+            let size = sizeFor(asset: asset)
+            DispatchQueue.main.async {
+                // We must sure that cell still visible and represents same asset
+                Assets.resolve(asset: asset, size: size) { [weak self] new in
+                    self?.updatePhoto(new, indexPath: indexPath, asset: asset)
+                    photoCell.customContentView.image = new
+                }
+            }
+        default:
+            break
+        }
+    }
+    
+    private func updatePhoto(_ photo: UIImage?, indexPath: IndexPath, asset: PHAsset) {
+        switch self.items[indexPath.item] {
+        case .photo(let currentAsset):
+            if currentAsset == asset,
+                let cell = self.collectionView.cellForItem(at: indexPath) as? CollectionViewPhotoCell {
+                cell.customContentView.image = photo
+            }
+        default:
+            break
+        }
+    }
+    
 }
 
 // MARK: - PhotoLayoutDelegate
 
 extension TelegramPickerViewController: PhotoLayoutDelegate {
     
-    func collectionView(_ collectionView: UICollectionView, sizeForPhotoAtIndexPath indexPath: IndexPath) -> CGSize {
-        let size: CGSize = sizeForItem(asset: assets[indexPath.item])
+    func collectionView(_ collectionView: UICollectionView, sizeForItemAtIndexPath indexPath: IndexPath) -> CGSize {
+        let size: CGSize = sizeForItem(item: items[indexPath.item])
         //Log("size = \(size)")
         return size
     }

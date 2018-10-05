@@ -2,7 +2,7 @@ import UIKit
 
 protocol PhotoLayoutDelegate: class {
     
-    func collectionView(_ collectionView: UICollectionView, sizeForPhotoAtIndexPath indexPath: IndexPath) -> CGSize
+    func collectionView(_ collectionView: UICollectionView, sizeForItemAtIndexPath indexPath: IndexPath) -> CGSize
 }
 
 
@@ -24,6 +24,10 @@ class PhotoLayout: UICollectionViewLayout {
     
     override public var collectionView: UICollectionView {
         return super.collectionView!
+    }
+    
+    public var proposedItemHeight: CGFloat {
+        return collectionView.bounds.height - (inset.top + inset.bottom)
     }
     
     private var inset: UIEdgeInsets {
@@ -52,11 +56,11 @@ class PhotoLayout: UICollectionViewLayout {
         var xOffset: CGFloat = 0
         let yOffset: CGFloat = 0
         
-        let height: CGFloat = collectionView.bounds.height - (inset.top + inset.bottom)
+        let height = self.proposedItemHeight
         
         for item in 0 ..< numberOfItems(inSection: 0) {
             let indexPath = IndexPath(item: item, section: 0)
-            let photoWidth: CGFloat = delegate.collectionView(collectionView, sizeForPhotoAtIndexPath: indexPath).width
+            let photoWidth: CGFloat = delegate.collectionView(collectionView, sizeForItemAtIndexPath: indexPath).width
             
             let width: CGFloat = photoWidth
             

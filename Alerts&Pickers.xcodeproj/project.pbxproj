@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		D77815DD2166A20500DA6613 /* CLPlacemark+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77815DC2166A20500DA6613 /* CLPlacemark+Extensions.swift */; };
+		D77815E321677D4700DA6613 /* Camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77815E221677D4700DA6613 /* Camera.swift */; };
+		D77815E52167A1EB00DA6613 /* CollectionViewCustomContentCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77815E42167A1EB00DA6613 /* CollectionViewCustomContentCell.swift */; };
+		D77815E82167A39F00DA6613 /* CollectionViewCameraCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77815E72167A39F00DA6613 /* CollectionViewCameraCell.swift */; };
 		FA005E922015D769001EA8C6 /* Contacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA005E912015D769001EA8C6 /* Contacts.swift */; };
 		FA005E942015E490001EA8C6 /* UISearchBar+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA005E932015E490001EA8C6 /* UISearchBar+Extensions.swift */; };
 		FA005E9620162BB5001EA8C6 /* Assets.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA005E9520162BB5001EA8C6 /* Assets.swift */; };
@@ -48,7 +51,7 @@
 		FA4B036C201A119C00D282E2 /* Location.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4B0368201A119C00D282E2 /* Location.swift */; };
 		FA4B036D201A119C00D282E2 /* LocationSearchResultsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4B0369201A119C00D282E2 /* LocationSearchResultsViewController.swift */; };
 		FA4B036F201A652900D282E2 /* Address.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4B036E201A652900D282E2 /* Address.swift */; };
-		FA4B0375201A817200D282E2 /* ItemWithPhoto.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4B0374201A817200D282E2 /* ItemWithPhoto.swift */; };
+		FA4B0375201A817200D282E2 /* CollectionViewPhotoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4B0374201A817200D282E2 /* CollectionViewPhotoCell.swift */; };
 		FA4B0377201A820200D282E2 /* PhotoLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4B0376201A820200D282E2 /* PhotoLayout.swift */; };
 		FA4B0379201A82FC00D282E2 /* ContactCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4B0378201A82FC00D282E2 /* ContactCell.swift */; };
 		FA4B037B201A85FE00D282E2 /* PhotoLibraryPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4B037A201A85FE00D282E2 /* PhotoLibraryPickerViewController.swift */; };
@@ -75,6 +78,9 @@
 
 /* Begin PBXFileReference section */
 		D77815DC2166A20500DA6613 /* CLPlacemark+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CLPlacemark+Extensions.swift"; sourceTree = "<group>"; };
+		D77815E221677D4700DA6613 /* Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera.swift; sourceTree = "<group>"; };
+		D77815E42167A1EB00DA6613 /* CollectionViewCustomContentCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewCustomContentCell.swift; sourceTree = "<group>"; };
+		D77815E72167A39F00DA6613 /* CollectionViewCameraCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewCameraCell.swift; sourceTree = "<group>"; };
 		FA005E912015D769001EA8C6 /* Contacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contacts.swift; sourceTree = "<group>"; };
 		FA005E932015E490001EA8C6 /* UISearchBar+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UISearchBar+Extensions.swift"; sourceTree = "<group>"; };
 		FA005E9520162BB5001EA8C6 /* Assets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Assets.swift; sourceTree = "<group>"; };
@@ -117,7 +123,7 @@
 		FA4B0368201A119C00D282E2 /* Location.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Location.swift; sourceTree = "<group>"; };
 		FA4B0369201A119C00D282E2 /* LocationSearchResultsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationSearchResultsViewController.swift; sourceTree = "<group>"; };
 		FA4B036E201A652900D282E2 /* Address.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Address.swift; sourceTree = "<group>"; };
-		FA4B0374201A817200D282E2 /* ItemWithPhoto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemWithPhoto.swift; sourceTree = "<group>"; };
+		FA4B0374201A817200D282E2 /* CollectionViewPhotoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewPhotoCell.swift; sourceTree = "<group>"; };
 		FA4B0376201A820200D282E2 /* PhotoLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLayout.swift; sourceTree = "<group>"; };
 		FA4B0378201A82FC00D282E2 /* ContactCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactCell.swift; sourceTree = "<group>"; };
 		FA4B037A201A85FE00D282E2 /* PhotoLibraryPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryPickerViewController.swift; sourceTree = "<group>"; };
@@ -153,6 +159,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D77815DF21677CC700DA6613 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				D77815E221677D4700DA6613 /* Camera.swift */,
+			);
+			path = Managers;
+			sourceTree = "<group>";
+		};
 		FA3BB26A2008B41B00E06F8F = {
 			isa = PBXGroup;
 			children = (
@@ -275,6 +289,7 @@
 		FA4B0370201A805000D282E2 /* Telegram */ = {
 			isa = PBXGroup;
 			children = (
+				D77815DF21677CC700DA6613 /* Managers */,
 				FA7CE67720125F0A00FB3E72 /* TelegramPickerViewController.swift */,
 				FAAB5C93201BCC5D00CCE04D /* Layouts */,
 				FAAB5C94201BCC6500CCE04D /* Views */,
@@ -410,8 +425,10 @@
 		FAAB5C94201BCC6500CCE04D /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				FA4B0374201A817200D282E2 /* ItemWithPhoto.swift */,
+				FA4B0374201A817200D282E2 /* CollectionViewPhotoCell.swift */,
+				D77815E72167A39F00DA6613 /* CollectionViewCameraCell.swift */,
 				FA25CAA42018677A00D1CB87 /* LikeButtonCell.swift */,
+				D77815E42167A1EB00DA6613 /* CollectionViewCustomContentCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -516,7 +533,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0920;
-				LastUpgradeCheck = 0920;
+				LastUpgradeCheck = 0940;
 				ORGANIZATIONNAME = "Supreme Apps";
 				TargetAttributes = {
 					FA3BB2722008B41B00E06F8F = {
@@ -586,6 +603,7 @@
 				FAAB5C9D201BD1F700CCE04D /* TypeOneCell.swift in Sources */,
 				FA4B0377201A820200D282E2 /* PhotoLayout.swift in Sources */,
 				FA4B037B201A85FE00D282E2 /* PhotoLibraryPickerViewController.swift in Sources */,
+				D77815E52167A1EB00DA6613 /* CollectionViewCustomContentCell.swift in Sources */,
 				FAAB5CA8201F74B700CCE04D /* AttributedTextBlock.swift in Sources */,
 				FA3BB2BB2008B46900E06F8F /* Optional+Extensions.swift in Sources */,
 				FABFAA68200C963F00961895 /* ColorPickerViewController.swift in Sources */,
@@ -615,11 +633,13 @@
 				FA3BB2BA2008B46900E06F8F /* UIAlertController+Extensions.swift in Sources */,
 				FA3BB2C22008B46900E06F8F /* PickerViewViewController.swift in Sources */,
 				FAAB5CA0201BD4B000CCE04D /* ItemWithImage.swift in Sources */,
-				FA4B0375201A817200D282E2 /* ItemWithPhoto.swift in Sources */,
+				D77815E321677D4700DA6613 /* Camera.swift in Sources */,
+				FA4B0375201A817200D282E2 /* CollectionViewPhotoCell.swift in Sources */,
 				FA7CE67820125F0A00FB3E72 /* TelegramPickerViewController.swift in Sources */,
 				FA4B036D201A119C00D282E2 /* LocationSearchResultsViewController.swift in Sources */,
 				FAAB5CA6201DEE9C00CCE04D /* UIViewController+Extensions.swift in Sources */,
 				FA3BB2B22008B46800E06F8F /* Array+Extensions.swift in Sources */,
+				D77815E82167A39F00DA6613 /* CollectionViewCameraCell.swift in Sources */,
 				FA4B036F201A652900D282E2 /* Address.swift in Sources */,
 				FA3BB2BD2008B46900E06F8F /* Locale+Extensions.swift in Sources */,
 			);
@@ -653,6 +673,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -660,6 +681,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -689,7 +711,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -711,6 +733,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -718,6 +741,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
