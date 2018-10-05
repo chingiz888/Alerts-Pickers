@@ -34,6 +34,11 @@ public struct Contacts {
         case error(error: Error)
     }
     
+    public static let defaultKeysToFetch: [CNKeyDescriptor] = [
+        CNContactVCardSerialization.descriptorForRequiredKeys(),
+        CNContactThumbnailImageDataKey as CNKeyDescriptor
+        ]
+    
     /// Requests access to the user's contacts
     ///
     /// - Parameter requestGranted: Result as Bool
@@ -59,7 +64,7 @@ public struct Contacts {
         
         let contactStore: CNContactStore = CNContactStore()
         var contacts: [CNContact] = [CNContact]()
-        let fetchRequest: CNContactFetchRequest = CNContactFetchRequest(keysToFetch: [CNContactVCardSerialization.descriptorForRequiredKeys()])
+        let fetchRequest: CNContactFetchRequest = CNContactFetchRequest(keysToFetch: defaultKeysToFetch)
         do {
             try contactStore.enumerateContacts(with: fetchRequest, usingBlock: {
                 contact, _ in
@@ -80,7 +85,7 @@ public struct Contacts {
         
         let contactStore: CNContactStore = CNContactStore()
         var contacts: [CNContact] = [CNContact]()
-        let fetchRequest: CNContactFetchRequest = CNContactFetchRequest(keysToFetch: [CNContactVCardSerialization.descriptorForRequiredKeys()])
+        let fetchRequest: CNContactFetchRequest = CNContactFetchRequest(keysToFetch: defaultKeysToFetch)
         fetchRequest.unifyResults = true
         fetchRequest.sortOrder = sortOrder
         do {
@@ -93,14 +98,14 @@ public struct Contacts {
         }
     }
     
-    /// etching Contacts from phone with Grouped By Alphabet
+    /// Fetching Contacts from phone with Grouped By Alphabet
     ///
     /// - Parameter completionHandler: It will return Dictonary of Alphabets with Their Sorted Respective Contacts.
      @available(iOS 10.0, *)
      public static func fetchContactsGroupedByAlphabets(completionHandler: @escaping (GroupedByAlphabetsFetchResults) -> ()) {
         
         let contactStore: CNContactStore = CNContactStore()
-        let fetchRequest: CNContactFetchRequest = CNContactFetchRequest(keysToFetch: [CNContactVCardSerialization.descriptorForRequiredKeys()])
+        let fetchRequest: CNContactFetchRequest = CNContactFetchRequest(keysToFetch: defaultKeysToFetch)
         var orderedContacts: [String: [CNContact]] = [String: [CNContact]]()
         CNContact.localizedString(forKey: CNLabelPhoneNumberiPhone)
         fetchRequest.mutableObjects = false
@@ -133,7 +138,7 @@ public struct Contacts {
     public static func fetchContactsOnBackgroundThread(completionHandler: @escaping (_ result: FetchResults) -> ()) {
         
         DispatchQueue.global(qos: .userInitiated).async(execute: { () -> () in
-            let fetchRequest: CNContactFetchRequest = CNContactFetchRequest(keysToFetch: [CNContactVCardSerialization.descriptorForRequiredKeys()])
+            let fetchRequest: CNContactFetchRequest = CNContactFetchRequest(keysToFetch: defaultKeysToFetch)
             var contacts = [CNContact]()
             CNContact.localizedString(forKey: CNLabelPhoneNumberiPhone)
             if #available(iOS 10.0, *) {
@@ -176,7 +181,7 @@ public struct Contacts {
         }
         
         do {
-            contacts = try contactStore.unifiedContacts(matching: predicate, keysToFetch: [CNContactVCardSerialization.descriptorForRequiredKeys()])
+            contacts = try contactStore.unifiedContacts(matching: predicate, keysToFetch: defaultKeysToFetch)
             contacts = contacts.sorted { $0.givenName < $1.givenName }
             completionHandler(FetchResults.success(response: contacts))
         } catch {
@@ -194,7 +199,7 @@ public struct Contacts {
         var contacts: [CNContact] = [CNContact]()
         let predicate: NSPredicate = CNContact.predicateForContacts(withIdentifiers: identifiers)
         do {
-            contacts = try contactStore.unifiedContacts(matching: predicate, keysToFetch: [CNContactVCardSerialization.descriptorForRequiredKeys()])
+            contacts = try contactStore.unifiedContacts(matching: predicate, keysToFetch: defaultKeysToFetch)
             completionHandler(FetchResults.success(response: contacts))
         } catch {
             completionHandler(FetchResults.error(error: error))
