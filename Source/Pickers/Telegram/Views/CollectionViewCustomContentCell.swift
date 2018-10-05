@@ -77,7 +77,7 @@ public final class CollectionViewCustomContentCell<CustomContentView: UIView>: U
     override public func layoutSubviews() {
         super.layoutSubviews()
         
-        customContentView.frame = contentView.frame
+        customContentView.frame = contentView.bounds
         customContentView.cornerRadius = 12
         
         updateSelectionAppearance()

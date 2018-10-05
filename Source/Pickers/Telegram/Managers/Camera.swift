@@ -17,6 +17,7 @@ public final class Camera {
     
     public enum StreamError: Error {
         case deviceUnsupported
+        case sessionStartFailed
     }
     
     public static func requestAccess(_ requestGranted: @escaping (Bool) -> ()) {
@@ -39,7 +40,7 @@ public final class Camera {
         case error(error: Error)
     }
     
-    public final class PreviewStream {
+    public final class PreviewStream: Equatable {
         
         public let device: AVCaptureDevice
         
@@ -47,19 +48,16 @@ public final class Camera {
         
         public let session: AVCaptureSession
         
-        public init(device: AVCaptureDevice, input: AVCaptureDeviceInput, session: AVCaptureSession) {
+        internal let queue: DispatchQueue
+        
+        public init(device: AVCaptureDevice, input: AVCaptureDeviceInput, session: AVCaptureSession, queue: DispatchQueue) {
             self.session = session
             self.input = input
             self.device = device
-        }
-        
-        deinit {
-            session.stopRunning()
-            session.removeInput(self.input)
+            self.queue = queue
         }
         
         public func startIfNeeded() {
-            
             guard !session.isRunning else {
                 return
             }
@@ -67,39 +65,61 @@ public final class Camera {
             session.startRunning()
         }
         
-        private static let queue = DispatchQueue(label: "CameraStream",
-                                                 qos: .background,
-                                                 attributes: [],
-                                                 autoreleaseFrequency: .workItem,
-                                                 target: nil)
-        
         /// Completion handler performs on separate thread
         public static func create(_ completionHandler: @escaping (StreamResult)->()) {
+            let queue = createQueue()
             queue.async {
                 let session = AVCaptureSession()
+                
+                session.beginConfiguration()
+                
+                session.setPresetsAlertnately([.low, .medium])
                 guard let device = createDevice() else {
                     completionHandler(.error(error: StreamError.deviceUnsupported))
                     return
                 }
                 
-                var input: AVCaptureDeviceInput!
+                let input: AVCaptureDeviceInput
                 do {
-                    let newInput = try AVCaptureDeviceInput.init(device: device)
-                    session.addInput(newInput)
-                    input = newInput
+                    input = try AVCaptureDeviceInput.init(device: device)
                 }
                 catch {
                     completionHandler(.error(error: error))
                     return
                 }
                 
-                let stream = PreviewStream.init(device: device, input: input, session: session)
+                guard session.canAddInput(input) else {
+                    completionHandler(.error(error: StreamError.sessionStartFailed))
+                    return
+                }
+                
+                session.addInput(input)
+                
+                session.commitConfiguration()
+                
+                session.startRunning()
+                
+                let stream = PreviewStream.init(device: device, input: input, session: session, queue: queue)
+                print("Create camera stream. Device \(device), input \(input), session \(session)")
+                
                 completionHandler(.stream(stream))
             }
         }
         
+        private static func createQueue() -> DispatchQueue {
+            return DispatchQueue.init(label: "CameraQueue \(arc4random())",
+                                      qos: .background,
+                                      attributes: [],
+                                      autoreleaseFrequency: .workItem,
+                                      target: nil)
+        }
+        
         private static func createDevice() -> AVCaptureDevice? {
             return AVCaptureDevice.default(.builtInWideAngleCamera, for: AVMediaType.video, position: .back)
+        }
+        
+        public static func == (lhs: PreviewStream, rhs: PreviewStream) -> Bool {
+            return lhs.session === rhs.session && lhs.input === rhs.input && lhs.device == rhs.device
         }
         
     }

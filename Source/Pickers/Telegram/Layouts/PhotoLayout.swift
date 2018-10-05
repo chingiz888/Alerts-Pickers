@@ -42,10 +42,6 @@ class PhotoLayout: UICollectionViewLayout {
         return collectionView.numberOfItems(inSection: section)
     }
     
-    override public func invalidateLayout() {
-        super.invalidateLayout()
-    }
-    
     override func prepare() {
         super.prepare()
         previousAttributes = currentAttributes
@@ -100,8 +96,6 @@ class PhotoLayout: UICollectionViewLayout {
         }
         return false
     }
-    
-    
     
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
         Log(selectedCellIndexPath)

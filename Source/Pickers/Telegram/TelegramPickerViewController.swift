@@ -79,7 +79,7 @@ final public class TelegramPickerViewController: UIViewController {
     }
     
     private var photoLayout: VerticalScrollFlowLayout {
-        return self.collectionView.collectionViewLayout as! VerticalScrollFlowLayout
+        return collectionView.collectionViewLayout as! VerticalScrollFlowLayout
     }
     
     func title(for button: ButtonType) -> String {
@@ -114,13 +114,13 @@ final public class TelegramPickerViewController: UIViewController {
     public var cameraStream: Camera.PreviewStream? = nil {
         didSet {
             if cameraStream !== oldValue, isViewLoaded {
-                resetItems()
+                updateCameraCells()
             }
         }
     }
     
     public var shouldShowCameraStream: Bool {
-        return cameraCellNeeded && cameraStream != nil
+        return cameraCellNeeded
     }
     
     private var visibleItemEntries: [(indexPath: IndexPath, item: StreamItem)] {
@@ -148,7 +148,7 @@ final public class TelegramPickerViewController: UIViewController {
     func sizeForItem(item: StreamItem) -> CGSize {
         switch item {
         case .camera:
-            let side = self.layout.proposedItemHeight
+            let side = layout.proposedItemHeight
             return CGSize.init(width: side, height: side)
         case .photo(let asset):
             return sizeForItem(asset: asset)
@@ -261,11 +261,11 @@ final public class TelegramPickerViewController: UIViewController {
             hasCameraItem = true
         }
         
-        if self.shouldShowCameraStream && !hasCameraItem {
+        if shouldShowCameraStream && !hasCameraItem {
             newItems.insert(.camera, at: 0)
             itemsChanged = true
         }
-        else if !self.shouldShowCameraStream && hasCameraItem {
+        else if !shouldShowCameraStream && hasCameraItem {
             newItems.remove(at: 0)
             itemsChanged = true
         }
@@ -280,7 +280,7 @@ final public class TelegramPickerViewController: UIViewController {
     func resetItems(assets: [PHAsset]) {
         
         var newItems = assets.map({StreamItem.photo($0)})
-        if self.shouldShowCameraStream {
+        if shouldShowCameraStream {
             newItems.insert(.camera, at: 0)
         }
        
@@ -294,12 +294,12 @@ final public class TelegramPickerViewController: UIViewController {
     }
     
     func updateCamera() {
-        guard self.cameraCellNeeded else {
-            self.cameraStream = nil
+        guard cameraCellNeeded else {
+            cameraStream = nil
             return
         }
         
-        self.checkCameraState { [weak self] (stream) in
+        checkCameraState { [weak self] (stream) in
             self?.cameraStream = stream
         }
     }
@@ -333,7 +333,7 @@ final public class TelegramPickerViewController: UIViewController {
                 self?.checkCameraState(completionHandler: completionHandler)
             }
         case .authorized:
-            self.setupCameraStream(completionHandler)
+            setupCameraStream(completionHandler)
             
         case .denied, .restricted:
             /// User has denied the current app to access the camera.
@@ -404,11 +404,11 @@ final public class TelegramPickerViewController: UIViewController {
     func action(withItem item: StreamItem, at indexPath: IndexPath) {
         switch item {
         case .camera:
-            if let stream = self.cameraStream {
-                self.selection?(.camera(stream))
+            if let stream = cameraStream {
+                selection?(.camera(stream))
             }
         case .photo(let asset):
-            self.action(withAsset: asset, at: indexPath)
+            action(withAsset: asset, at: indexPath)
         }
     }
     
@@ -424,9 +424,9 @@ final public class TelegramPickerViewController: UIViewController {
         let becomeEmpty = selectedAssets.isEmpty
 
         if (wasEmpty != becomeEmpty) {
-            self.layout.invalidateLayout()
-            self.layoutSubviews()
-            self.collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
+            layout.invalidateLayout()
+            layoutSubviews()
+            collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
         } else {
             collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
         }
@@ -518,20 +518,9 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
         
     }
     
-    private func isCameraCellRepresentingCurrentStream(_ cell: CollectionViewCameraCell) -> Bool {
-        guard let stream = self.cameraStream else {
-            return cell.customContentView.representedStream == nil
-        }
-        return cell.customContentView.isRepresentingCameraStream(stream)
-    }
-    
     private func dequeue(_ collectionView: UICollectionView, cellForCameraAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell: CollectionViewCameraCell = dequeue(collectionView, id: .camera, indexPath: indexPath)
         cell.showSelectionCircles = false
-        if !isCameraCellRepresentingCurrentStream(cell) {
-            cell.customContentView.reset()
-        }
-        
         return cell
     }
     
@@ -568,16 +557,7 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
                 return
             }
             
-            guard !isCameraCellRepresentingCurrentStream(cameraCell) else {
-                return
-            }
-            
-            if let stream = cameraStream {
-                CameraView.RepresentedStream.create(cameraStream: stream) { (viewStream) in
-                    self.updateCamera(stream, represented: viewStream, indexPath: indexPath)
-                }
-            }
-            
+            cameraCell.customContentView.representedStream = self.cameraStream
         }
     }
     
@@ -594,17 +574,12 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
         }
     }
     
-    private func updateCamera(_ stream: Camera.PreviewStream, represented: CameraView.RepresentedStream, indexPath: IndexPath) {
-        
+    private func updateCameraCells() {
         for entry in visibleItemEntries where entry.item.isCamera {
-            
-            guard let cell = collectionView.cellForItem(at: indexPath) as? CollectionViewCameraCell else {
+            guard let cell = collectionView.cellForItem(at: entry.indexPath) as? CollectionViewCameraCell else {
                 return
             }
-            
-            if !cell.customContentView.isRepresentingCameraStream(stream) {
-                cell.customContentView.representedStream = represented
-            }
+            cell.customContentView.representedStream = cameraStream
         }
     }
     
