@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D725CCC5216CBE6D001A6974 /* TelegramPickerLocalizable.swift in Sources */ = {isa = PBXBuildFile; fileRef = D725CCC4216CBE6D001A6974 /* TelegramPickerLocalizable.swift */; };
+		D725CCC8216CD16F001A6974 /* ExampleTelegramPickerLocalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D725CCC7216CD16F001A6974 /* ExampleTelegramPickerLocalizer.swift */; };
 		D77815DD2166A20500DA6613 /* CLPlacemark+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77815DC2166A20500DA6613 /* CLPlacemark+Extensions.swift */; };
 		D77815E321677D4700DA6613 /* Camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77815E221677D4700DA6613 /* Camera.swift */; };
 		D77815E52167A1EB00DA6613 /* CollectionViewCustomContentCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77815E42167A1EB00DA6613 /* CollectionViewCustomContentCell.swift */; };
@@ -78,6 +80,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D725CCC4216CBE6D001A6974 /* TelegramPickerLocalizable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramPickerLocalizable.swift; sourceTree = "<group>"; };
+		D725CCC7216CD16F001A6974 /* ExampleTelegramPickerLocalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleTelegramPickerLocalizer.swift; sourceTree = "<group>"; };
 		D77815DC2166A20500DA6613 /* CLPlacemark+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CLPlacemark+Extensions.swift"; sourceTree = "<group>"; };
 		D77815E221677D4700DA6613 /* Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera.swift; sourceTree = "<group>"; };
 		D77815E42167A1EB00DA6613 /* CollectionViewCustomContentCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewCustomContentCell.swift; sourceTree = "<group>"; };
@@ -262,6 +266,7 @@
 				FAAB5C9B201BD1B200CCE04D /* Views */,
 				FA3BB28A2008B46500E06F8F /* Resources */,
 				FA3BB2AA2008B46800E06F8F /* ViewController.swift */,
+				D725CCC7216CD16F001A6974 /* ExampleTelegramPickerLocalizer.swift */,
 				FA3BB2AB2008B46800E06F8F /* AppDelegate.swift */,
 			);
 			path = Example;
@@ -294,6 +299,7 @@
 			children = (
 				D77815DF21677CC700DA6613 /* Managers */,
 				FA7CE67720125F0A00FB3E72 /* TelegramPickerViewController.swift */,
+				D725CCC4216CBE6D001A6974 /* TelegramPickerLocalizable.swift */,
 				FAAB5C93201BCC5D00CCE04D /* Layouts */,
 				FAAB5C94201BCC6500CCE04D /* Views */,
 			);
@@ -591,6 +597,7 @@
 				FA3BB2C12008B46900E06F8F /* ImagePickerViewController.swift in Sources */,
 				D7D51A552167F205006455B6 /* AVCaptureSession+Extensions.swift in Sources */,
 				FA3BB2BC2008B46900E06F8F /* Common+Extensions.swift in Sources */,
+				D725CCC8216CD16F001A6974 /* ExampleTelegramPickerLocalizer.swift in Sources */,
 				FA3BB2B42008B46800E06F8F /* UIView+Extensions.swift in Sources */,
 				FABFAA64200C1D4600961895 /* GradientSlider.swift in Sources */,
 				FA7CE6D920149F9B00FB3E72 /* ContactsPickerViewController.swift in Sources */,
@@ -636,6 +643,7 @@
 				FA005E9620162BB5001EA8C6 /* Assets.swift in Sources */,
 				FA3BB2BA2008B46900E06F8F /* UIAlertController+Extensions.swift in Sources */,
 				FA3BB2C22008B46900E06F8F /* PickerViewViewController.swift in Sources */,
+				D725CCC5216CBE6D001A6974 /* TelegramPickerLocalizable.swift in Sources */,
 				FAAB5CA0201BD4B000CCE04D /* ItemWithImage.swift in Sources */,
 				D77815E321677D4700DA6613 /* Camera.swift in Sources */,
 				FA4B0375201A817200D282E2 /* CollectionViewPhotoCell.swift in Sources */,

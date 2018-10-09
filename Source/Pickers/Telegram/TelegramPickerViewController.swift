@@ -19,8 +19,9 @@ extension UIAlertController {
     /// - Parameters:
     ///   - selection: type and action for selection of asset/assets
     
-    public func addTelegramPicker(selection: @escaping TelegramSelection) {
-        let vc = TelegramPickerViewController(selection: selection)
+    public func addTelegramPicker(selection: @escaping TelegramSelection,
+                                  localizer: TelegramPickerLocalizable) {
+        let vc = TelegramPickerViewController(selection: selection, localizer: localizer)
         set(vc: vc)
     }
 }
@@ -199,21 +200,20 @@ final public class TelegramPickerViewController: UIViewController {
     lazy var items = [StreamItem]()
     lazy var selectedAssets = [PHAsset]()
     
-    var selection: TelegramSelection?
+    let selection: TelegramSelection
+    let localizer: TelegramPickerLocalizable
     
     // MARK: Initialize
     
-    required public init(selection: @escaping TelegramSelection) {
+    required public init(selection: @escaping TelegramSelection,
+                         localizer: TelegramPickerLocalizable) {
         self.selection = selection
+        self.localizer = localizer
         super.init(nibName: nil, bundle: nil)
     }
     
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-    
-    deinit {
-        Log("has deinitialized")
     }
     
     override public func loadView() {
@@ -315,12 +315,19 @@ final public class TelegramPickerViewController: UIViewController {
             DispatchQueue.main.async {
                 switch result {
                 case .error(error: let error):
-                    print("Error while setup camera stream. \(error.localizedDescription)")
+                    self.handleCameraStreamFailure(error)
                     completionHandler(nil)
                 case .stream(let stream):
                     completionHandler(stream)
                 }
             }
+        }
+    }
+    
+    func handleCameraStreamFailure(_ error: Error) {
+        print("Error while setup camera stream. \(error.localizedDescription)")
+        if let alert = localizer.localizedAlert(failure: .error(error)) {
+            alert.show()
         }
     }
     
@@ -369,17 +376,10 @@ final public class TelegramPickerViewController: UIViewController {
             
         case .denied, .restricted:
             /// User has denied the current app to access the contacts.
-            let productName = Bundle.main.infoDictionary!["CFBundleName"]!
-            let alert = UIAlertController(style: .alert, title: "Permission denied", message: "\(productName) does not have access to contacts. Please, allow the application to access to your photo library.")
-            alert.addAction(title: "Settings", style: .destructive) { action in
-                if let settingsURL = URL(string: UIApplicationOpenSettingsURLString) {
-                    UIApplication.shared.open(settingsURL)
-                }
+            
+            if let alert = localizer.localizedAlert(failure: .noAccessToPhoto) {
+                alert.show()
             }
-            alert.addAction(title: "OK", style: .cancel) { [unowned self] action in
-                self.alertController?.dismiss(animated: true)
-            }
-            alert.show()
         }
     }
     
@@ -391,12 +391,9 @@ final public class TelegramPickerViewController: UIViewController {
                 completionHandler(assets)
                 
             case .error(let error):
-                Log("------ error")
-                let alert = UIAlertController(style: .alert, title: "Error", message: error.localizedDescription)
-                alert.addAction(title: "OK") { [weak self] action in
-                    self?.alertController?.dismiss(animated: true)
+                if let alert = self?.localizer.localizedAlert(failure: .error(error)) {
+                    alert.show()
                 }
-                alert.show()
             }
         }
     }
@@ -405,7 +402,7 @@ final public class TelegramPickerViewController: UIViewController {
         switch item {
         case .camera:
             if let stream = cameraStream {
-                selection?(.camera(stream))
+                selection(.camera(stream))
             }
         case .photo(let asset):
             action(withAsset: asset, at: indexPath)
@@ -419,7 +416,7 @@ final public class TelegramPickerViewController: UIViewController {
         selectedAssets.contains(asset)
             ? selectedAssets.remove(asset)
             : selectedAssets.append(asset)
-        selection?(TelegramSelectionType.photo(selectedAssets))
+        selection(TelegramSelectionType.photo(selectedAssets))
         
         let becomeEmpty = selectedAssets.isEmpty
 
@@ -439,7 +436,7 @@ final public class TelegramPickerViewController: UIViewController {
         case .photoOrVideo:
             alertController?.addPhotoLibraryPicker(flow: .vertical, paging: false,
                 selection: .multiple(action: { assets in
-                    self.selection?(TelegramSelectionType.photo(assets))
+                    self.selection(TelegramSelectionType.photo(assets))
                 }))
             
         case .file:
@@ -448,17 +445,17 @@ final public class TelegramPickerViewController: UIViewController {
             
         case .location:
             alertController?.addLocationPicker { location in
-                self.selection?(TelegramSelectionType.location(location))
+                self.selection(TelegramSelectionType.location(location))
             }
             
         case .contact:
             alertController?.addContactsPicker { contact in
-                self.selection?(TelegramSelectionType.contact(contact))
+                self.selection(TelegramSelectionType.contact(contact))
             }
             
         case .sendPhotos:
             alertController?.dismiss(animated: true) { [unowned self] in
-                self.selection?(TelegramSelectionType.photo(self.selectedAssets))
+                self.selection(TelegramSelectionType.photo(self.selectedAssets))
             }
             
         case .sendAsFile:
