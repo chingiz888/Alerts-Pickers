@@ -10,7 +10,15 @@ import Foundation
 
 import UIKit
 
-public final class CollectionViewCustomContentCell<CustomContentView: UIView>: UICollectionViewCell {
+public enum CollectionViewCustomContentCellSelectionElement: Int {
+    case selectedCircle
+    case unselectedCircle
+    case selectedPoint
+    
+    public static let all: [CollectionViewCustomContentCellSelectionElement] = [.selectedCircle, .unselectedCircle, .selectedPoint]
+}
+
+public class CollectionViewCustomContentCell<CustomContentView: UIView>: UICollectionViewCell {
     
     lazy var customContentView: CustomContentView = {
         $0.backgroundColor = .clear
@@ -19,28 +27,25 @@ public final class CollectionViewCustomContentCell<CustomContentView: UIView>: U
         return $0
     }(CustomContentView())
     
-    lazy var unselectedCircle: UIView = {
-        $0.backgroundColor = .clear
-        $0.borderWidth = 2
-        $0.borderColor = .white
-        $0.maskToBounds = false
-        return $0
-    }(UIView())
+    public typealias SelectionElement = CollectionViewCustomContentCellSelectionElement
     
-    lazy var selectedCircle: UIView = {
-        $0.backgroundColor = .clear
-        $0.borderWidth = 2
-        $0.borderColor = .white
-        $0.maskToBounds = false
-        return $0
-    }(UIView())
+    internal let inset: CGFloat = 6
     
-    lazy var selectedPoint: UIView = {
-        $0.backgroundColor = UIColor(hex: 0x007AFF)
-        return $0
-    }(UIView())
+    public var selectionSize: CGSize = CGSize(width: 28, height: 28) {
+        didSet {
+            self.setNeedsLayout()
+            self.updateSelectionAppearance()
+        }
+    }
     
-    fileprivate let inset: CGFloat = 6
+    public var selectionBorderWidth: CGFloat = 2.0 {
+        didSet {
+            self.setNeedsLayout()
+            self.updateSelectionAppearance()
+        }
+    }
+    
+    public private(set) var selectionElements: [SelectionElement : UIView] = [:]
     
     public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -63,15 +68,30 @@ public final class CollectionViewCustomContentCell<CustomContentView: UIView>: U
     public func setup() {
         backgroundColor = .clear
         
+        for element in SelectionElement.all {
+            self.selectionElements[element] = createSelectionElement(element)
+        }
+        
         let unselected: UIView = UIView()
         unselected.addSubview(customContentView)
-        unselected.addSubview(unselectedCircle)
+        unselected.addSubview(selectionElementView(.unselectedCircle))
         backgroundView = unselected
         
         let selected: UIView = UIView()
-        selected.addSubview(selectedCircle)
-        selected.addSubview(selectedPoint)
+        selected.addSubview(selectionElementView(.selectedCircle))
+        selected.addSubview(selectionElementView(.selectedPoint))
         selectedBackgroundView = selected
+    }
+    
+    private var proposedSelectionCircleSize: CGSize {
+        var size = selectionSize
+        size.width -= selectionBorderWidth * 2
+        size.height -= selectionBorderWidth * 2
+        return size
+    }
+    
+    private func selectionElementView(_ element: SelectionElement) -> UIView {
+        return self.selectionElements[element]!
     }
     
     override public func layoutSubviews() {
@@ -84,29 +104,94 @@ public final class CollectionViewCustomContentCell<CustomContentView: UIView>: U
     }
     
     func updateSelectionAppearance() {
-        updateAppearance(forCircle: unselectedCircle)
-        updateAppearance(forCircle: selectedCircle)
-        updateAppearance(forPoint: selectedPoint)
+        updateSelectionAppearance(.unselectedCircle)
+        updateSelectionAppearance(.selectedCircle)
+        updateSelectionAppearance(.selectedPoint)
+    }
+    
+    func createSelectionElement(_ element: SelectionElement) -> UIView {
+        switch element {
+        case .selectedCircle:
+            return createView({
+                $0.backgroundColor = .clear
+                $0.borderWidth = 2
+                $0.borderColor = .white
+                $0.maskToBounds = false
+            })
+            
+        case .selectedPoint:
+            return createView({
+                $0.backgroundColor = UIColor(hex: 0x007AFF)
+            })
+            
+        case .unselectedCircle:
+            return createView({
+                $0.backgroundColor = .clear
+                $0.borderWidth = 2
+                $0.borderColor = .white
+                $0.maskToBounds = false
+            })
+        }
+    }
+    
+    func createView(_ block: (UIView) -> ()) -> UIView {
+        let view = UIView()
+        block(view)
+        return view
+    }
+    
+    func updateSelectionAppearance(_ element: SelectionElement) {
+        switch element {
+        case .selectedCircle: updateAppearance(forCircle: selectionElementView(.selectedCircle))
+        case .unselectedCircle: updateAppearance(forCircle: selectionElementView(.unselectedCircle))
+        case .selectedPoint: updateAppearance(forPoint: selectionElementView(.selectedPoint))
+        }
+    }
+    
+    public func centerPointForSelection() -> CGPoint {
+        let x = customContentView.bounds.width - selectionSize.width / 2.0 - inset
+        let y = inset + selectionSize.height / 2.0
+        return CGPoint(x: x, y: y)
+    }
+    
+    public func updateAllSelectionelementsLayout() {
+        SelectionElement.all.forEach({updateSelectionLayout(element: $0)})
+    }
+    
+    func updateSelectionLayout(element: SelectionElement) {
+        let view = selectionElementView(element)
+        view.frame.size = (element == .selectedPoint) ? proposedSelectionCircleSize : selectionSize
+        view.center = centerPointForSelection()
     }
     
     func updateAppearance(forCircle view: UIView) {
-        view.frame.size = CGSize(width: 28, height: 28)
-        view.frame.origin.x = customContentView.bounds.width - unselectedCircle.bounds.width - inset
-        view.frame.origin.y = inset
+        
+        if view === selectionElementView(.selectedCircle) {
+            self.updateSelectionLayout(element: .selectedCircle)
+        }
+        else if view === selectionElementView(.unselectedCircle) {
+            self.updateSelectionLayout(element: .unselectedCircle)
+        }
+        
+        view.center = centerPointForSelection()
+        
         view.circleCorner = true
         view.shadowColor = UIColor.black.withAlphaComponent(0.4)
         view.shadowOffset = .zero
         view.shadowRadius = 4
         view.shadowOpacity = 0.2
-        view.shadowPath = UIBezierPath(roundedRect: unselectedCircle.bounds, byRoundingCorners: .allCorners, cornerRadii: CGSize(width: unselectedCircle.bounds.width / 2, height: unselectedCircle.bounds.width / 2)).cgPath
+        view.shadowPath = UIBezierPath(roundedRect: CGRect.init(origin: .zero, size: selectionSize),
+                                       byRoundingCorners: .allCorners,
+                                       cornerRadii: CGSize(width: selectionSize.width / 2, height: selectionSize.height / 2)).cgPath
         view.shadowShouldRasterize = true
         view.shadowRasterizationScale = UIScreen.main.scale
         view.isHidden = !showSelectionCircles
     }
     
     func updateAppearance(forPoint view: UIView) {
-        view.frame.size = CGSize(width: unselectedCircle.width - unselectedCircle.borderWidth * 2, height: unselectedCircle.height - unselectedCircle.borderWidth * 2)
-        view.center = selectedCircle.center
+        
+        updateSelectionLayout(element: .selectedPoint)
+        
         view.circleCorner = true
         view.isHidden = !showSelectionCircles
     }

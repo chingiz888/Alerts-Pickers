@@ -534,6 +534,7 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
     }
     
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        
         switch items[indexPath.item] {
         case .photo(let asset):
             guard let photoCell = cell as? CollectionViewPhotoCell else {
@@ -556,6 +557,27 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
             
             cameraCell.customContentView.representedStream = self.cameraStream
         }
+        
+        self.updateVisibleAreaRect(cell: cell)
+    }
+    
+    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard scrollView === collectionView else {
+            return
+        }
+        
+        collectionView.visibleCells.forEach({updateVisibleAreaRect(cell: $0)})
+    }
+    
+    private func updateVisibleAreaRect(cell: UICollectionViewCell) {
+        guard let cell = cell as? CollectionViewPhotoCell else {
+            return
+        }
+        
+        let cellVisibleRectInCollectionView = cell.convert(cell.bounds, to: collectionView)
+        let cellVisibleAreaInCollectionView = cellVisibleRectInCollectionView.intersection(collectionView.bounds)
+        let cellVisibleRect = cell.convert(cellVisibleAreaInCollectionView, from: collectionView)
+        cell.visibleArea = cellVisibleRect
     }
     
     private func updatePhoto(_ photo: UIImage?, asset: PHAsset) {
