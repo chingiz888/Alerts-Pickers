@@ -61,8 +61,9 @@ public final class Camera {
             guard !session.isRunning else {
                 return
             }
-            
-            session.startRunning()
+            self.queue.async {
+                self.session.startRunning()
+            }
         }
         
         /// Completion handler performs on separate thread
