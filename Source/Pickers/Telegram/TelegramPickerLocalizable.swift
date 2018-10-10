@@ -15,7 +15,8 @@ public enum LocalizableButtonType {
     case location
     case contact
     case photos(count: Int)
-    case sendAsFile
+    case sendDocumentAsFile
+    case sendPhotoAsFile
 }
 
 public enum Failure {

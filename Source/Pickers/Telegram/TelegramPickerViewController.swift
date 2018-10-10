@@ -10,6 +10,8 @@ public enum TelegramSelectionType {
     case location(Location?)
     case contact(Contact?)
     case camera(Camera.PreviewStream)
+    case document
+    case photosAsDocuments([PHAsset])
 }
 
 extension UIAlertController {
@@ -31,16 +33,21 @@ extension UIAlertController {
 final public class TelegramPickerViewController: UIViewController {
 
     var buttons: [ButtonType] {
-        return selectedAssets.isEmpty ? [.photoOrVideo, .location, .contact] : [.sendPhotos]
+        switch mode {
+        case .normal: return [.photoOrVideo, .file, .location, .contact]
+        case .bigPhotoPreviews: return [.sendPhotos]
+        case .documentType: return [.documentAsFile, .photoAsFile]
+        }
     }
     
     enum ButtonType {
         case photoOrVideo
-        case file
         case location
         case contact
+        case file
         case sendPhotos
-        case sendAsFile
+        case documentAsFile
+        case photoAsFile
     }
     
     enum StreamItem: Equatable {
@@ -68,6 +75,12 @@ final public class TelegramPickerViewController: UIViewController {
         case camera
     }
     
+    enum Mode: Int {
+        case normal
+        case bigPhotoPreviews
+        case documentType
+    }
+    
     // MARK: UI
     
     struct UI {
@@ -79,19 +92,27 @@ final public class TelegramPickerViewController: UIViewController {
         static let multiplier: CGFloat = 2
     }
     
+    fileprivate var mode = Mode.normal
+    
     private var photoLayout: VerticalScrollFlowLayout {
         return collectionView.collectionViewLayout as! VerticalScrollFlowLayout
     }
     
     func title(for button: ButtonType) -> String {
+        
+        let localizableButton: LocalizableButtonType
+        
         switch button {
-        case .photoOrVideo: return "Photo or Video"
-        case .file: return "File"
-        case .location: return "Location"
-        case .contact: return "Contact"
-        case .sendPhotos: return "Send \(selectedAssets.count) \(selectedAssets.count == 1 ? "Photo" : "Photos")"
-        case .sendAsFile: return "Send as File"
+        case .photoOrVideo: localizableButton = .photoOrVideo
+        case .file: localizableButton = .file
+        case .location: localizableButton = .location
+        case .contact: localizableButton = .contact
+        case .sendPhotos: localizableButton = .photos(count: selectedAssets.count)
+        case .documentAsFile: localizableButton = .sendDocumentAsFile
+        case .photoAsFile: localizableButton = .sendPhotoAsFile
         }
+        
+        return self.localizer.localized(buttonType: localizableButton)
     }
     
     func font(for button: ButtonType) -> UIFont {
@@ -100,8 +121,12 @@ final public class TelegramPickerViewController: UIViewController {
         default: return UIFont.systemFont(ofSize: 20) }
     }
     
-    var preferredHeight: CGFloat {
-        return UI.maxHeight / (selectedAssets.isEmpty ? UI.multiplier : 1) + UI.insets.top + UI.insets.bottom
+    var preferredTableHeaderHeight: CGFloat {
+        switch mode {
+        case .normal: return UI.maxHeight / UI.multiplier + UI.insets.top + UI.insets.bottom
+        case .bigPhotoPreviews: return UI.maxHeight + UI.insets.top + UI.insets.bottom
+        case .documentType: return 0
+        }
     }
     
     public var cameraCellNeeded: Bool = true {
@@ -121,7 +146,7 @@ final public class TelegramPickerViewController: UIViewController {
     }
     
     public var shouldShowCameraStream: Bool {
-        return cameraCellNeeded
+        return cameraCellNeeded && mode == .normal
     }
     
     private var visibleItemEntries: [(indexPath: IndexPath, item: StreamItem)] {
@@ -138,11 +163,14 @@ final public class TelegramPickerViewController: UIViewController {
     
     func sizeForItem(asset: PHAsset) -> CGSize {
         let size: CGSize = sizeFor(asset: asset)
-        if selectedAssets.isEmpty {
+        switch mode {
+        case .bigPhotoPreviews:
+            return size
+        case .normal:
             let value: CGFloat = size.height / UI.multiplier
             return CGSize(width: value, height: value)
-        } else {
-            return size
+        case .documentType:
+            return .zero
         }
     }
     
@@ -230,25 +258,42 @@ final public class TelegramPickerViewController: UIViewController {
         updatePhotos()
         updateCamera()
     }
+    
+    public override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        tableView.tableHeaderView?.height = preferredTableHeaderHeight
+    }
         
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         layoutSubviews()
     }
     
+    private var isLayouting = false
+    
     func layoutSubviews() {
-        
-        let initialHeight: CGFloat = tableView.tableHeaderView?.height ?? 0.0
-        
-        tableView.tableHeaderView?.height = preferredHeight
-        
-        let resultHeight: CGFloat = tableView.tableHeaderView?.height ?? 0.0
-        
-        if initialHeight != resultHeight {
-            tableView.reloadData()
-        }
-        
         preferredContentSize.height = tableView.contentSize.height
+//
+//        guard !isLayouting else {
+//            return
+//        }
+//
+//        let initialHeight: CGFloat = tableView.tableHeaderView?.height ?? 0.0
+//        let targetHeight = preferredTableHeaderHeight
+//
+//        tableView.tableHeaderView?.height = preferredTableHeaderHeight
+//        preferredContentSize.height = tableView.contentSize.height
+//
+//        guard initialHeight != targetHeight else {
+//            return
+//        }
+//
+//        isLayouting = true
+//
+//        tableView.setNeedsLayout()
+//        tableView.layoutIfNeeded()
+//
+//        isLayouting = false
     }
     
     func resetItems() {
@@ -411,37 +456,57 @@ final public class TelegramPickerViewController: UIViewController {
     
     func action(withAsset asset: PHAsset, at indexPath: IndexPath) {
         
-        let wasEmpty = selectedAssets.isEmpty
-        
-        selectedAssets.contains(asset)
-            ? selectedAssets.remove(asset)
-            : selectedAssets.append(asset)
-        selection(TelegramSelectionType.photo(selectedAssets))
-        
-        let becomeEmpty = selectedAssets.isEmpty
-
-        if (wasEmpty != becomeEmpty) {
-            layout.invalidateLayout()
-            layoutSubviews()
-            collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
-        } else {
-            collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
+        guard mode != .documentType else {
+            return
         }
-        tableView.reloadData()
+        
+        selectedAssets.contains(asset) ? selectedAssets.remove(asset) : selectedAssets.append(asset)
+        
+        let oldMode = mode
+        let newMode: Mode = selectedAssets.isEmpty ? .normal : .bigPhotoPreviews
+        self.applyMode(newMode)
+        
+        let scrollAnimated = oldMode == newMode
+        collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: scrollAnimated)
+    }
+    
+    func applyMode(_ mode: Mode) {
+        guard mode != self.mode else {
+            return
+        }
+        
+        self.mode = mode
+        
+        self.collectionView.isHidden = mode == .documentType
+        
+        UIView.performWithoutAnimation {
+            self.tableView.beginUpdates()
+            self.tableView.reloadSections([0], with: .left)
+            self.tableView.endUpdates()
+        }
+    }
+    
+    func switchToDocumentTypeMenu() {
+        self.applyMode(.documentType)
     }
     
     func action(for button: ButtonType) {
         switch button {
             
         case .photoOrVideo:
-            alertController?.addPhotoLibraryPicker(flow: .vertical, paging: false,
-                selection: .multiple(action: { assets in
-                    self.selection(TelegramSelectionType.photo(assets))
-                }))
+            alertController?.addPhotoLibraryPicker(flow: .vertical, paging: false, selection: .multiple(action: { assets in
+                self.selection(TelegramSelectionType.photo(assets))
+            }))
             
-        case .file:
+        case .photoAsFile:
+            alertController?.addPhotoLibraryPicker(flow: .vertical, paging: false, selection: .multiple(action: { assets in
+                self.selection(TelegramSelectionType.photosAsDocuments(assets))
+            }))
             
-            break
+        case .documentAsFile:
+            alertController?.dismiss(animated: true) { [weak self] in
+                self?.selection(.document)
+            }
             
         case .location:
             alertController?.addLocationPicker { location in
@@ -454,13 +519,13 @@ final public class TelegramPickerViewController: UIViewController {
             }
             
         case .sendPhotos:
-            alertController?.dismiss(animated: true) { [unowned self] in
-                self.selection(TelegramSelectionType.photo(self.selectedAssets))
+            let assets = selectedAssets
+            alertController?.dismiss(animated: true) { [weak self] in
+                self?.selection(TelegramSelectionType.photo(assets))
             }
             
-        case .sendAsFile:
-            
-            break
+        case .file:
+            self.switchToDocumentTypeMenu()
         }
     }
 }
@@ -620,10 +685,7 @@ extension TelegramPickerViewController: PhotoLayoutDelegate {
 extension TelegramPickerViewController: UITableViewDelegate {
     
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        Log("indexPath = \(indexPath)")
-        DispatchQueue.main.async {
-            self.action(for: self.buttons[indexPath.row])
-        }
+        self.action(for: self.buttons[indexPath.row])
     }
 }
 

@@ -173,8 +173,6 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
             self.updateSelectionLayout(element: .unselectedCircle)
         }
         
-        view.center = centerPointForSelection()
-        
         view.circleCorner = true
         view.shadowColor = UIColor.black.withAlphaComponent(0.4)
         view.shadowOffset = .zero

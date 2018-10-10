@@ -9,7 +9,8 @@ public struct ExampleTelegramPickerLocalizer: TelegramPickerLocalizable {
         case .location: return "Location"
         case .contact: return "Contact"
         case .photos(count: let count): return "Send \(count) \(count == 1 ? "Photo" : "Photos")"
-        case .sendAsFile: return "Send as File"
+        case .sendDocumentAsFile: return "Document"
+        case .sendPhotoAsFile: return "Photo"
         }
     }
     

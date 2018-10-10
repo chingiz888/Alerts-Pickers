@@ -13,8 +13,12 @@ public final class CollectionViewPhotoCell: CollectionViewCustomContentCell<UIIm
     
     public override func centerPointForSelection() -> CGPoint {
         
-        guard visibleArea != .zero else {
+        guard !visibleArea.isEmpty && !visibleArea.isNull else {
             return super.centerPointForSelection()
+        }
+        
+        if visibleArea.debugDescription.contains("inf") {
+            print("centering. \(visibleArea.debugDescription)")
         }
         
         let frameInContent = convert(visibleArea, to: self.contentView)
@@ -25,8 +29,9 @@ public final class CollectionViewPhotoCell: CollectionViewCustomContentCell<UIIm
         
         let y = self.contentView.bounds.minY + selectionSize.height / 2.0 + inset
         
-        
-        return CGPoint(x: x, y: y)
+        let centerPoint = CGPoint(x: x, y: y)
+        Log(centerPoint)
+        return centerPoint
     }
     
 }

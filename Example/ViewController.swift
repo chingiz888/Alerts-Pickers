@@ -417,6 +417,10 @@ class ViewController: UIViewController {
                 case .camera(let stream):
                     Log(stream)
                     alert?.dismiss(animated: true, completion: nil)
+                case .photosAsDocuments(let assets):
+                    Log("Photo as documents: " + assets.description)
+                case .document:
+                    Log("Document")
                 }
             }, localizer: ExampleTelegramPickerLocalizer())
             alert.addAction(title: "Cancel", style: .cancel)
