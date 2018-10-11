@@ -4,13 +4,13 @@ import UIKit
 
 extension UITextField {
     
-    public typealias TextFieldConfig = (UITextField) -> Swift.Void
+    typealias TextFieldConfig = (UITextField) -> Swift.Void
     
-    public func config(textField configurate: TextFieldConfig?) {
+    func config(textField configurate: TextFieldConfig?) {
         configurate?(self)
     }
     
-    public func left(image: UIImage?, color: UIColor = .black) {
+    func left(image: UIImage?, color: UIColor = .black) {
         if let image = image {
             leftViewMode = UITextFieldViewMode.always
             let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: 20, height: 20))
@@ -25,7 +25,7 @@ extension UITextField {
         }
     }
     
-    public func right(image: UIImage?, color: UIColor = .black) {
+    func right(image: UIImage?, color: UIColor = .black) {
         if let image = image {
             rightViewMode = UITextFieldViewMode.always
             let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: 20, height: 20))
@@ -43,12 +43,12 @@ extension UITextField {
 
 // MARK: - Methods
 
-public extension UITextField {
+extension UITextField {
     
     /// Set placeholder text color.
     ///
     /// - Parameter color: placeholder text color.
-    public func setPlaceHolderTextColor(_ color: UIColor) {
+    func setPlaceHolderTextColor(_ color: UIColor) {
         self.attributedPlaceholder = NSAttributedString(string:self.placeholder != nil ? self.placeholder! : "", attributes:[NSAttributedStringKey.foregroundColor: color])
     }
     

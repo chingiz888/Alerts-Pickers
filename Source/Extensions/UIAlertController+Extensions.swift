@@ -48,7 +48,7 @@ extension UIAlertController {
     ///   - animated: set true to animate presentation of alert controller (default is true).
     ///   - vibrate: set true to vibrate the device while presenting the alert (default is false).
     ///   - completion: an optional completion handler to be called after presenting alert controller (default is nil).
-    public func show(animated: Bool = true, vibrate: Bool = false, style: UIBlurEffectStyle? = nil, completion: (() -> Void)? = nil) {
+    func show(animated: Bool = true, vibrate: Bool = false, style: UIBlurEffectStyle? = nil, completion: (() -> Void)? = nil) {
         
         /// TODO: change UIBlurEffectStyle
         if let style = style {
@@ -72,7 +72,7 @@ extension UIAlertController {
     ///   - style: action style (default is UIAlertActionStyle.default)
     ///   - isEnabled: isEnabled status for action (default is true)
     ///   - handler: optional action handler to be called when button is tapped (default is nil)
-    public func addAction(image: UIImage? = nil, title: String, color: UIColor? = nil, style: UIAlertActionStyle = .default, isEnabled: Bool = true, handler: ((UIAlertAction) -> Void)? = nil) {
+    func addAction(image: UIImage? = nil, title: String, color: UIColor? = nil, style: UIAlertActionStyle = .default, isEnabled: Bool = true, handler: ((UIAlertAction) -> Void)? = nil) {
         //let isPad: Bool = UIDevice.current.userInterfaceIdiom == .pad
         //let action = UIAlertAction(title: title, style: isPad && style == .cancel ? .default : style, handler: handler)
         let action = UIAlertAction(title: title, style: style, handler: handler)
@@ -97,7 +97,7 @@ extension UIAlertController {
     ///   - title: alert title
     ///   - font: alert title font
     ///   - color: alert title color
-    public func set(title: String?, font: UIFont, color: UIColor) {
+    func set(title: String?, font: UIFont, color: UIColor) {
         if title != nil {
             self.title = title
         }
@@ -117,7 +117,7 @@ extension UIAlertController {
     ///   - message: alert message
     ///   - font: alert message font
     ///   - color: alert message color
-    public func set(message: String?, font: UIFont, color: UIColor) {
+    func set(message: String?, font: UIFont, color: UIColor) {
         if message != nil {
             self.message = message
         }

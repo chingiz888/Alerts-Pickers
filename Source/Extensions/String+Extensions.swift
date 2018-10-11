@@ -27,7 +27,7 @@ extension String {
 }
 
 // MARK: - NSAttributedString extensions
-public extension String {
+internal extension String {
     
     /// Regular string.
     public var regular: NSAttributedString {

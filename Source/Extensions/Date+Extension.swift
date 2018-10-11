@@ -1,6 +1,6 @@
 import Foundation
 
-public extension Date {
+extension Date {
     
     /// User’s current calendar.
     public var calendar: Calendar {
