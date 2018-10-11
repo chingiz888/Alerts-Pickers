@@ -15,7 +15,7 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
     lazy var customContentView: CustomContentView = {
         $0.backgroundColor = .clear
         $0.contentMode = .scaleAspectFill
-        $0.maskToBounds = true
+        $0.layer.masksToBounds = true
         return $0
     }(CustomContentView())
     
@@ -98,7 +98,7 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
         super.layoutSubviews()
         
         customContentView.frame = contentView.bounds
-        customContentView.cornerRadius = 12
+        customContentView.layer.cornerRadius = 12
         
         updateSelectionAppearance()
     }
@@ -114,9 +114,9 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
         case .selectedCircle:
             return createView({
                 $0.backgroundColor = .clear
-                $0.borderWidth = 2
-                $0.borderColor = .white
-                $0.maskToBounds = false
+                $0.layer.borderWidth = 2
+                $0.layer.borderColor = UIColor.white.cgColor
+                $0.layer.masksToBounds = false
             })
             
         case .selectedPoint:
@@ -127,9 +127,9 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
         case .unselectedCircle:
             return createView({
                 $0.backgroundColor = .clear
-                $0.borderWidth = 2
-                $0.borderColor = .white
-                $0.maskToBounds = false
+                $0.layer.borderWidth = 2
+                $0.layer.borderColor = UIColor.white.cgColor
+                $0.layer.masksToBounds = false
             })
         }
     }
@@ -167,16 +167,16 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
             self.updateSelectionLayout(element: .unselectedCircle)
         }
         
-        view.circleCorner = true
-        view.shadowColor = UIColor.black.withAlphaComponent(0.4)
-        view.shadowOffset = .zero
-        view.shadowRadius = 4
-        view.shadowOpacity = 0.2
-        view.shadowPath = UIBezierPath(roundedRect: CGRect.init(origin: .zero, size: selectionSize),
+        view.dlgpicker_setupRoundCorners()
+        view.layer.shadowColor = UIColor.black.withAlphaComponent(0.4).cgColor
+        view.layer.shadowOffset = .zero
+        view.layer.shadowRadius = 4
+        view.layer.shadowOpacity = 0.2
+        view.layer.shadowPath = UIBezierPath(roundedRect: CGRect.init(origin: .zero, size: selectionSize),
                                        byRoundingCorners: .allCorners,
                                        cornerRadii: CGSize(width: selectionSize.width / 2, height: selectionSize.height / 2)).cgPath
-        view.shadowShouldRasterize = true
-        view.shadowRasterizationScale = UIScreen.main.scale
+        view.layer.shouldRasterize = true
+        view.layer.rasterizationScale = UIScreen.main.scale
         view.isHidden = !showSelectionCircles
     }
     
@@ -184,7 +184,7 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
         
         updateSelectionLayout(element: .selectedPoint)
         
-        view.circleCorner = true
+        view.dlgpicker_setupRoundCorners()
         view.isHidden = !showSelectionCircles
     }
     

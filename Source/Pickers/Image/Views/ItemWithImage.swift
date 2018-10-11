@@ -7,23 +7,23 @@ class ItemWithImage: UICollectionViewCell {
     lazy var imageView: UIImageView = {
         $0.backgroundColor = .clear
         $0.contentMode = .scaleAspectFill
-        $0.maskToBounds = true
+        $0.layer.masksToBounds = true
         return $0
     }(UIImageView())
     
     lazy var unselectedCircle: UIView = {
         $0.backgroundColor = .clear
-        $0.borderWidth = 2
-        $0.borderColor = .white
-        $0.maskToBounds = false
+        $0.layer.borderWidth = 2
+        $0.layer.borderColor = UIColor.white.cgColor
+        $0.layer.masksToBounds = false
         return $0
     }(UIView())
     
     lazy var selectedCircle: UIView = {
         $0.backgroundColor = .clear
-        $0.borderWidth = 2
-        $0.borderColor = .white
-        $0.maskToBounds = false
+        $0.layer.borderWidth = 2
+        $0.layer.borderColor = UIColor.white.cgColor
+        $0.layer.masksToBounds = false
         return $0
     }(UIView())
     
@@ -71,7 +71,7 @@ class ItemWithImage: UICollectionViewCell {
     }
     
     override func sizeThatFits(_ size: CGSize) -> CGSize {
-        contentView.size = size
+        contentView.frame.size = size
         layout()
         return size
     }
@@ -80,19 +80,21 @@ class ItemWithImage: UICollectionViewCell {
         view.frame.size = CGSize(width: 28, height: 28)
         view.frame.origin.x = imageView.bounds.width - unselectedCircle.bounds.width - inset
         view.frame.origin.y = inset
-        view.circleCorner = true
-        view.shadowColor = UIColor.black.withAlphaComponent(0.4)
-        view.shadowOffset = .zero
-        view.shadowRadius = 4
-        view.shadowOpacity = 0.2
-        view.shadowPath = UIBezierPath(roundedRect: unselectedCircle.bounds, byRoundingCorners: .allCorners, cornerRadii: CGSize(width: unselectedCircle.bounds.width / 2, height: unselectedCircle.bounds.width / 2)).cgPath
-        view.shadowShouldRasterize = true
-        view.shadowRasterizationScale = UIScreen.main.scale
+        
+        view.dlgpicker_setupRoundCorners()
+        view.layer.shadowColor = UIColor.black.withAlphaComponent(0.4).cgColor
+        view.layer.shadowOffset = .zero
+        view.layer.shadowRadius = 4
+        view.layer.shadowOpacity = 0.2
+        view.layer.shadowPath = UIBezierPath(roundedRect: unselectedCircle.bounds, byRoundingCorners: .allCorners, cornerRadii: CGSize(width: unselectedCircle.bounds.width / 2, height: unselectedCircle.bounds.width / 2)).cgPath
+        view.layer.shouldRasterize = true
+        view.layer.rasterizationScale = UIScreen.main.scale
     }
     
     func updateAppearance(forPoint view: UIView) {
-        view.frame.size = CGSize(width: unselectedCircle.width - unselectedCircle.borderWidth * 2, height: unselectedCircle.height - unselectedCircle.borderWidth * 2)
+        view.frame.size = CGSize(width: unselectedCircle.frame.width - unselectedCircle.layer.borderWidth * 2,
+                                 height: unselectedCircle.frame.height - unselectedCircle.layer.borderWidth * 2)
         view.center = selectedCircle.center
-        view.circleCorner = true
+        view.dlgpicker_setupRoundCorners()
     }
 }

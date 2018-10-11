@@ -119,7 +119,7 @@ final public class ContactsPickerViewController: UIViewController {
     
     override public func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        tableView.tableHeaderView?.height = 57
+        tableView.tableHeaderView?.frame.size.height = 57
         searchController.searchBar.sizeToFit()
         searchController.searchBar.frame.size.width = searchView.frame.size.width
         searchController.searchBar.frame.size.height = searchView.frame.size.height

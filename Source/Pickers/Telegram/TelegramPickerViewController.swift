@@ -199,7 +199,7 @@ final public class TelegramPickerViewController: UIViewController {
 //        $0.contentInsetAdjustmentBehavior = .never
         $0.contentInset = UI.insets
         $0.backgroundColor = .clear
-        $0.maskToBounds = false
+        $0.layer.masksToBounds = false
         $0.clipsToBounds = false
         $0.register(CollectionViewPhotoCell.self, forCellWithReuseIdentifier: CellId.photo.rawValue)
         $0.register(CollectionViewCameraCell.self, forCellWithReuseIdentifier: CellId.camera.rawValue)
@@ -264,7 +264,7 @@ final public class TelegramPickerViewController: UIViewController {
     
     public override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        tableView.tableHeaderView?.height = preferredTableHeaderHeight
+        tableView.tableHeaderView?.frame.size.height = preferredTableHeaderHeight
     }
         
     override public func viewDidLayoutSubviews() {

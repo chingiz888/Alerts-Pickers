@@ -100,7 +100,7 @@ final public class PhotoLibraryPickerViewController: UIViewController {
 //        $0.contentInsetAdjustmentBehavior = .always
         $0.bounces = true
         $0.backgroundColor = .clear
-        $0.maskToBounds = false
+        $0.layer.masksToBounds = false
         $0.clipsToBounds = false
         return $0
         }(UICollectionView(frame: .zero, collectionViewLayout: layout))

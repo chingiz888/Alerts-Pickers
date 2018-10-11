@@ -52,8 +52,8 @@ extension UIAlertController {
         
         /// TODO: change UIBlurEffectStyle
         if let style = style {
-            for subview in view.allSubViewsOf(type: UIVisualEffectView.self) {
-                subview.effect = UIBlurEffect(style: style)
+            for subview in view.subviews where subview is UIVisualEffectView {
+                (subview as? UIVisualEffectView)?.effect = UIBlurEffect(style: style)
             }
         }
         

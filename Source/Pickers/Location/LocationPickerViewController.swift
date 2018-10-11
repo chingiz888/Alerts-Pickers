@@ -83,8 +83,8 @@ final public class LocationPickerViewController: UIViewController {
     
     lazy var locationButton: Button = {
         $0.backgroundColor = UIColor.white.withAlphaComponent(0.8)
-        $0.maskToBounds = true
-        $0.cornerRadius = 22
+        $0.layer.masksToBounds = true
+        $0.layer.cornerRadius = 22
         $0.setImage(#imageLiteral(resourceName: "geolocation"), for: UIControlState())
         $0.addTarget(self, action: #selector(LocationPickerViewController.currentLocationPressed),
                          for: .touchUpInside)
@@ -163,10 +163,10 @@ final public class LocationPickerViewController: UIViewController {
 	
     override open func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        searchView.frame = CGRect(x: 8, y: 8, width: view.width - 16, height: 57)
+        searchView.frame = CGRect(x: 8, y: 8, width: view.frame.width - 16, height: 57)
         //searchController.searchBar.sizeToFit()
-        searchController.searchBar.width = searchView.width
-        searchController.searchBar.height = searchView.height
+        searchController.searchBar.frame.size.width = searchView.frame.width
+        searchController.searchBar.frame.size.height = searchView.frame.height
         
     }
     
@@ -383,9 +383,9 @@ extension LocationPickerViewController: MKMapViewDelegate {
         }
         button.backgroundColor = UIColor(hex: 0x007AFF)
 		button.setTitleColor(.white, for: UIControlState())
-        button.borderWidth = 2
-        button.borderColor = UIColor(hex: 0x007AFF)
-        button.cornerRadius = 5
+        button.layer.borderWidth = 2
+        button.layer.borderColor = UIColor(hex: 0x007AFF).cgColor
+        button.layer.cornerRadius = 5
         button.titleEdgeInsets.left = 5
         button.titleEdgeInsets.right = 5
 		return button

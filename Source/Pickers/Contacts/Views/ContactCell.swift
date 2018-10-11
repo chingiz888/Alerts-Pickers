@@ -16,7 +16,7 @@ final class ContactTableViewCell: UITableViewCell {
         selectionStyle = .none
         backgroundColor = nil
         contentView.backgroundColor = nil
-        imageView?.maskToBounds = true
+        imageView?.layer.masksToBounds = true
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -25,9 +25,9 @@ final class ContactTableViewCell: UITableViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        let value: CGFloat = self.contentView.height - 8
-        imageView?.size = CGSize(width: value, height: value)
-        imageView?.circleCorner = true
+        let value: CGFloat = self.contentView.frame.size.height - 8
+        imageView?.frame.size = CGSize(width: value, height: value)
+        imageView?.dlgpicker_setupRoundCorners()
     }
     
     // MARK: Configure Selection

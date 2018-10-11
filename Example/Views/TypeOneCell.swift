@@ -52,14 +52,14 @@ class TypeOneCell: UICollectionViewCell {
     func layout() {
         let vTextInset: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 4 : 2
         let hTextInset: CGFloat = UIDevice.current.userInterfaceIdiom == .pad ? 12 : 8
-        let imageViewHeight: CGFloat = contentView.height - (layoutMargins.top + layoutMargins.bottom)
+        let imageViewHeight: CGFloat = contentView.frame.height - (layoutMargins.top + layoutMargins.bottom)
         imageView.frame = CGRect(x: layoutMargins.left + 4, y: layoutMargins.top, width: imageViewHeight, height: imageViewHeight)
-        let textViewWidth: CGFloat = contentView.width - imageView.frame.maxX - 2 * hTextInset
-        let titleSize = title.sizeThatFits(CGSize(width: textViewWidth, height: contentView.height))
-        let subtitleSize = subtitle.sizeThatFits(CGSize(width: textViewWidth, height: contentView.height))
+        let textViewWidth: CGFloat = contentView.frame.width - imageView.frame.maxX - 2 * hTextInset
+        let titleSize = title.sizeThatFits(CGSize(width: textViewWidth, height: contentView.frame.height))
+        let subtitleSize = subtitle.sizeThatFits(CGSize(width: textViewWidth, height: contentView.frame.height))
         title.frame = CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: textViewWidth, height: titleSize.height))
         subtitle.frame = CGRect(origin: CGPoint(x: 0, y: title.frame.maxY + vTextInset), size: CGSize(width: textViewWidth, height: subtitleSize.height))
-        textView.size = CGSize(width: textViewWidth, height: subtitle.frame.maxY)
+        textView.frame.size = CGSize(width: textViewWidth, height: subtitle.frame.maxY)
         textView.frame.origin.x = imageView.frame.maxX + hTextInset
         textView.center.y = imageView.center.y
         //textRect(forBounds: CGRect(x: 0, y: 0, width: Int.max, height: 30), limitedToNumberOfLines: 1).width
@@ -68,15 +68,15 @@ class TypeOneCell: UICollectionViewCell {
     }
     
     func style(view: UIView) {
-        view.maskToBounds = false
+        view.layer.masksToBounds = false
         view.backgroundColor = .white
-        view.cornerRadius = 14
-        view.shadowColor = .black
-        view.shadowOffset = CGSize(width: 1, height: 5)
-        view.shadowRadius = 8
-        view.shadowOpacity = 0.2
-        view.shadowPath = UIBezierPath(roundedRect: view.bounds, byRoundingCorners: .allCorners, cornerRadii: CGSize(width: 14, height: 14)).cgPath
-        view.shadowShouldRasterize = true
-        view.shadowRasterizationScale = UIScreen.main.scale
+        view.layer.cornerRadius = 14
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowOffset = CGSize(width: 1, height: 5)
+        view.layer.shadowRadius = 8
+        view.layer.shadowOpacity = 0.2
+        view.layer.shadowPath = UIBezierPath(roundedRect: view.bounds, byRoundingCorners: .allCorners, cornerRadii: CGSize(width: 14, height: 14)).cgPath
+        view.layer.shouldRasterize = true
+        view.layer.rasterizationScale = UIScreen.main.scale
     }
 }

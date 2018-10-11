@@ -37,12 +37,12 @@ final public class TwoTextFieldsViewController: UIViewController {
         textFieldView.addSubview(textFieldOne)
         textFieldView.addSubview(textFieldTwo)
         
-        textFieldView.width = view.width
-        textFieldView.height = height * 2
-        textFieldView.maskToBounds = true
-        textFieldView.borderWidth = 1
-        textFieldView.borderColor = UIColor.lightGray
-        textFieldView.cornerRadius = 8
+        textFieldView.frame.size.width = view.frame.width
+        textFieldView.frame.size = CGSize(width: view.frame.width, height: height * 2)
+        textFieldView.layer.masksToBounds = true
+        textFieldView.layer.borderWidth = 1
+        textFieldView.layer.borderColor = UIColor.lightGray.cgColor
+        textFieldView.layer.cornerRadius = 8
         
         configurationOneFor?(textFieldOne)
         configurationTwoFor?(textFieldTwo)
@@ -66,20 +66,19 @@ final public class TwoTextFieldsViewController: UIViewController {
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
-        textFieldView.width = view.width - hInset * 2
-        textFieldView.height = height * 2
-        textFieldView.center.x = view.center.x
-        textFieldView.center.y = view.center.y
+        textFieldView.frame.size = .init(width: view.frame.width - hInset * 2.0,
+                                         height: height * 2.0)
+        textFieldView.center = view.center
         
-        textFieldOne.width = textFieldView.width
-        textFieldOne.height = textFieldView.height / 2
-        textFieldOne.center.x = textFieldView.width / 2
-        textFieldOne.center.y = textFieldView.height / 4
+        textFieldOne.frame.size = .init(width: textFieldView.frame.width,
+                                        height: textFieldView.frame.height / 2.0)
+        textFieldOne.center = .init(x: textFieldView.frame.width / 2.0,
+                                    y: textFieldView.frame.height / 4.0)
         
-        textFieldTwo.width = textFieldView.width
-        textFieldTwo.height = textFieldView.height / 2
-        textFieldTwo.center.x = textFieldView.width / 2
-        textFieldTwo.center.y = textFieldView.height - textFieldView.height / 4
+        textFieldTwo.frame.size = .init(width: textFieldView.frame.width,
+                                        height: textFieldView.frame.height / 2.0)
+        textFieldTwo.center = .init(x: textFieldView.frame.width / 2.0,
+                                    y: textFieldView.frame.height - textFieldView.frame.height / 4.0)
     }
 }
 
