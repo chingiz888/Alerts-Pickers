@@ -138,6 +138,11 @@ class PhotoLayout: UICollectionViewLayout {
         return currentAttributes[indexPath.item]
     }
     
+    override func finalLayoutAttributesForDisappearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        print("Will disappear \(itemIndexPath.item) from \(currentAttributes[itemIndexPath.item]) to \(currentAttributes[itemIndexPath.item])")
+        return layoutAttributesForItem(at: itemIndexPath)
+    }
+    
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         return currentAttributes.filter { rect.intersects($0.frame) }
     }
