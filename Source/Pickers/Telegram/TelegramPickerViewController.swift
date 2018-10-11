@@ -94,8 +94,8 @@ final public class TelegramPickerViewController: UIViewController {
     
     fileprivate var mode = Mode.normal
     
-    private var photoLayout: VerticalScrollFlowLayout {
-        return collectionView.collectionViewLayout as! VerticalScrollFlowLayout
+    private var photoLayout: PhotoLayout {
+        return collectionView.collectionViewLayout as! PhotoLayout
     }
     
     func title(for button: ButtonType) -> String {
@@ -449,7 +449,7 @@ final public class TelegramPickerViewController: UIViewController {
         }
         
         let scrollAnimated = oldMode == newMode
-//        collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: scrollAnimated)
+        collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: scrollAnimated)
     }
     
     func updateSendButtonsTitleIfNeeded() {
@@ -465,8 +465,6 @@ final public class TelegramPickerViewController: UIViewController {
         guard newMode != self.mode else {
             return
         }
-        
-        let oldButtons = self.buttons
         
         mode = newMode
         
