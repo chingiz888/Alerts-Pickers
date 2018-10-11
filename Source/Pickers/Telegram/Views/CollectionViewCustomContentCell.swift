@@ -1,11 +1,3 @@
-//
-//  CollectionViewCustomContentCell.swift
-//  Alerts&Pickers
-//
-//  Created by Lex on 05.10.2018.
-//  Copyright © 2018 Supreme Apps. All rights reserved.
-//
-
 import Foundation
 
 import UIKit
@@ -46,6 +38,14 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
     }
     
     public private(set) var selectionElements: [SelectionElement : UIView] = [:]
+    
+    private var selectionCenter: CGPoint = .zero {
+        didSet {
+            if selectionCenter != oldValue {
+                setNeedsLayout()
+            }
+        }
+    }
     
     public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -148,12 +148,6 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
         }
     }
     
-    public func centerPointForSelection() -> CGPoint {
-        let x = customContentView.bounds.width - selectionSize.width / 2.0 - inset
-        let y = inset + selectionSize.height / 2.0
-        return CGPoint(x: x, y: y)
-    }
-    
     public func updateAllSelectionelementsLayout() {
         SelectionElement.all.forEach({updateSelectionLayout(element: $0)})
     }
@@ -161,7 +155,7 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
     func updateSelectionLayout(element: SelectionElement) {
         let view = selectionElementView(element)
         view.frame.size = (element == .selectedPoint) ? proposedSelectionCircleSize : selectionSize
-        view.center = centerPointForSelection()
+        view.center = self.selectionCenter
     }
     
     func updateAppearance(forCircle view: UIView) {
@@ -196,6 +190,11 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
     
     override public func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
         super.apply(layoutAttributes)
+        if let photoLayoutAttributes = layoutAttributes as? PhotoLayout.Attributes {
+            self.selectionCenter = photoLayoutAttributes.selectionCenter
+        }
         layoutIfNeeded()
     }
+    
+    
 }

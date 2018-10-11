@@ -132,7 +132,7 @@ final public class TelegramPickerViewController: UIViewController {
     public var cameraCellNeeded: Bool = true {
         didSet {
             if cameraCellNeeded != oldValue, isViewLoaded {
-                resetItems()
+                self.layout.invalidateLayout()
             }
         }
     }
@@ -155,19 +155,22 @@ final public class TelegramPickerViewController: UIViewController {
         return entries
     }
     
-    func sizeFor(asset: PHAsset) -> CGSize {
+    func sizeForPreviewPreload(asset: PHAsset) -> CGSize {
         let height: CGFloat = UI.maxHeight
         let width: CGFloat = CGFloat(Double(height) * Double(asset.pixelWidth) / Double(asset.pixelHeight))
         return CGSize(width: width, height: height)
     }
     
-    func sizeForItem(asset: PHAsset) -> CGSize {
-        let size: CGSize = sizeFor(asset: asset)
+    func sizeForAsset(asset: PHAsset) -> CGSize {
         switch mode {
         case .bigPhotoPreviews:
+            var size = CGSize.init(width: asset.pixelWidth, height: asset.pixelHeight)
+            let multiplier = UI.maxHeight / size.height
+            size.height *= multiplier
+            size.width *= multiplier
             return size
         case .normal:
-            let value: CGFloat = size.height / UI.multiplier
+            let value: CGFloat = UI.maxHeight / UI.multiplier
             return CGSize(width: value, height: value)
         case .documentType:
             return .zero
@@ -177,10 +180,10 @@ final public class TelegramPickerViewController: UIViewController {
     func sizeForItem(item: StreamItem) -> CGSize {
         switch item {
         case .camera:
-            let side = layout.proposedItemHeight
+            let side = UI.maxHeight / UI.multiplier
             return CGSize.init(width: side, height: side)
         case .photo(let asset):
-            return sizeForItem(asset: asset)
+            return sizeForAsset(asset: asset)
         }
     }
     
@@ -266,34 +269,7 @@ final public class TelegramPickerViewController: UIViewController {
         
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        layoutSubviews()
-    }
-    
-    private var isLayouting = false
-    
-    func layoutSubviews() {
         preferredContentSize.height = tableView.contentSize.height
-//
-//        guard !isLayouting else {
-//            return
-//        }
-//
-//        let initialHeight: CGFloat = tableView.tableHeaderView?.height ?? 0.0
-//        let targetHeight = preferredTableHeaderHeight
-//
-//        tableView.tableHeaderView?.height = preferredTableHeaderHeight
-//        preferredContentSize.height = tableView.contentSize.height
-//
-//        guard initialHeight != targetHeight else {
-//            return
-//        }
-//
-//        isLayouting = true
-//
-//        tableView.setNeedsLayout()
-//        tableView.layoutIfNeeded()
-//
-//        isLayouting = false
     }
     
     func resetItems() {
@@ -464,26 +440,51 @@ final public class TelegramPickerViewController: UIViewController {
         
         let oldMode = mode
         let newMode: Mode = selectedAssets.isEmpty ? .normal : .bigPhotoPreviews
-        self.applyMode(newMode)
+        
+        if mode != newMode {
+            applyMode(newMode)
+        }
+        else {
+            updateSendButtonsTitleIfNeeded()
+        }
         
         let scrollAnimated = oldMode == newMode
-        collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: scrollAnimated)
+//        collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: scrollAnimated)
     }
     
-    func applyMode(_ mode: Mode) {
-        guard mode != self.mode else {
+    func updateSendButtonsTitleIfNeeded() {
+        if let idx = buttons.index(of: .sendPhotos),
+            let cell = tableView.cellForRow(at: IndexPath(row: idx, section: 0)) as? LikeButtonCell {
+            let title = self.localizer.localized(buttonType: .photos(count: self.selectedAssets.count))
+            cell.textLabel?.text = title
+        }
+    }
+    
+    func applyMode(_ newMode: Mode) {
+        
+        guard newMode != self.mode else {
             return
         }
         
-        self.mode = mode
+        let oldButtons = self.buttons
         
-        self.collectionView.isHidden = mode == .documentType
+        mode = newMode
         
-        UIView.performWithoutAnimation {
-            self.tableView.beginUpdates()
-            self.tableView.reloadSections([0], with: .left)
-            self.tableView.endUpdates()
+        collectionView.isHidden = newMode == .documentType
+        
+        switch mode {
+        case .documentType:
+            tableView.reloadData()
+        case .bigPhotoPreviews:
+            tableView.reloadData()
+        case .normal:
+            tableView.reloadSections([0], with: .fade)
         }
+        
+//        collectionView.performBatchUpdates({
+            self.layout.mode = (newMode == .normal) ? .normal : .hidingFirstItem
+//        })
+
     }
     
     func switchToDocumentTypeMenu() {
@@ -536,12 +537,13 @@ extension TelegramPickerViewController: UICollectionViewDelegate {
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if isSelectableItem(at: indexPath, collectionView: collectionView) {
-            layout.selectedCellIndexPath = layout.selectedCellIndexPath == indexPath ? nil : indexPath
+            layout.selectedCellIndexPath = indexPath
         }
         action(withItem: items[indexPath.item], at: indexPath)
     }
     
     public func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        layout.selectedCellIndexPath = nil
         action(withItem: items[indexPath.item], at: indexPath)
     }
     
@@ -606,7 +608,7 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
                 return
             }
             
-            let size = sizeFor(asset: asset)
+            let size = sizeForPreviewPreload(asset: asset)
             DispatchQueue.main.async {
                 // We must sure that cell still visible and represents same asset
                 Assets.resolve(asset: asset, size: size) { [weak self] new in
@@ -623,7 +625,7 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
             cameraCell.customContentView.representedStream = self.cameraStream
         }
         
-        self.updateVisibleAreaRect(cell: cell)
+        self.updateVisibleAreaRect(cell: cell, indexPath: indexPath)
     }
     
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -631,10 +633,19 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
             return
         }
         
-        collectionView.visibleCells.forEach({updateVisibleAreaRect(cell: $0)})
+        updateVisibleCellsVisibleAreaRects()
     }
     
-    private func updateVisibleAreaRect(cell: UICollectionViewCell) {
+    private func updateVisibleCellsVisibleAreaRects() {
+        let indexPaths = collectionView.indexPathsForVisibleItems
+        for indexPath in indexPaths {
+            if let cell = collectionView.cellForItem(at: indexPath) {
+                updateVisibleAreaRect(cell: cell, indexPath: indexPath)
+            }
+        }
+    }
+    
+    private func updateVisibleAreaRect(cell: UICollectionViewCell, indexPath: IndexPath) {
         guard let cell = cell as? CollectionViewPhotoCell else {
             return
         }
@@ -642,7 +653,8 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
         let cellVisibleRectInCollectionView = cell.convert(cell.bounds, to: collectionView)
         let cellVisibleAreaInCollectionView = cellVisibleRectInCollectionView.intersection(collectionView.bounds)
         let cellVisibleRect = cell.convert(cellVisibleAreaInCollectionView, from: collectionView)
-        cell.visibleArea = cellVisibleRect
+        
+        layout.updateVisibleArea(cellVisibleRect, itemAt: indexPath, cell: cell)
     }
     
     private func updatePhoto(_ photo: UIImage?, asset: PHAsset) {
@@ -674,9 +686,7 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
 extension TelegramPickerViewController: PhotoLayoutDelegate {
     
     func collectionView(_ collectionView: UICollectionView, sizeForItemAtIndexPath indexPath: IndexPath) -> CGSize {
-        let size: CGSize = sizeForItem(item: items[indexPath.item])
-        //Log("size = \(size)")
-        return size
+        return sizeForItem(item: items[indexPath.item])
     }
 }
 

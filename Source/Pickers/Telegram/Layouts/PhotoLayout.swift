@@ -8,12 +8,55 @@ protocol PhotoLayoutDelegate: class {
 
 class PhotoLayout: UICollectionViewLayout {
     
+    class Attributes: UICollectionViewLayoutAttributes {
+        
+        public var selectionCenter: CGPoint {
+           return self.selectionCenterFor(visibleArea: self.visibleArea)
+        }
+        
+        public var selectionSize: CGSize = CGSize(width: 28, height: 28)
+        
+        public var selectionInset: CGFloat = 8.0
+        
+        public var selectionBorderWidth: CGFloat = 2.0
+        
+        public var visibleArea: CGRect = .zero
+        
+        private func selectionCenterFor(visibleArea area: CGRect) -> CGPoint {
+            
+            let y = bounds.minY + selectionSize.height / 2.0 + selectionInset
+            
+//            guard !area.isNull && !area.isEmpty else {
+//                return CGPoint(x: bounds.maxX - selectionSize.width / 2.0 - selectionInset, y: y)
+//            }
+            
+            let areaMaxX: CGFloat = area.isNull ? 0.0 : area.maxX
+            
+            let minX = bounds.minX + selectionSize.width / 2.0 + selectionInset
+            let desiredX = areaMaxX - selectionSize.width / 2.0 - selectionInset
+            let x = max(minX, desiredX)
+            
+            
+            let centerPoint = CGPoint(x: x, y: y)
+            return centerPoint
+        }
+        
+    }
+    
     weak var delegate: PhotoLayoutDelegate!
     
     public var lineSpacing: CGFloat = 6
     
-    fileprivate var previousAttributes = [UICollectionViewLayoutAttributes]()
-    fileprivate var currentAttributes = [UICollectionViewLayoutAttributes]()
+    enum Mode: Int {
+        case normal
+        case hidingFirstItem
+    }
+    
+    /// When you change it you're responsible to call layout invalidation.
+    public var mode: Mode = .normal
+    
+    fileprivate var previousAttributes = [Attributes]()
+    fileprivate var currentAttributes = [Attributes]()
     
     fileprivate var contentSize: CGSize = .zero
     public var selectedCellIndexPath: IndexPath?
@@ -44,36 +87,50 @@ class PhotoLayout: UICollectionViewLayout {
     
     override func prepare() {
         super.prepare()
+        
         previousAttributes = currentAttributes
         
         contentSize = .zero
+        
         currentAttributes = []
         
         var xOffset: CGFloat = 0
-        let yOffset: CGFloat = 0
+        if numberOfItems(inSection: 0) > 0 && mode == .hidingFirstItem {
+            xOffset = -delegate.collectionView(collectionView, sizeForItemAtIndexPath: IndexPath(item: 0, section: 0)).width - lineSpacing
+        }
         
         let height = self.proposedItemHeight
         
         for item in 0 ..< numberOfItems(inSection: 0) {
             let indexPath = IndexPath(item: item, section: 0)
-            let photoWidth: CGFloat = delegate.collectionView(collectionView, sizeForItemAtIndexPath: indexPath).width
             
-            let width: CGFloat = photoWidth
+            let size = delegate.collectionView(collectionView, sizeForItemAtIndexPath: indexPath)
             
-            let frame = CGRect(x: xOffset, y: yOffset, width: width, height: height)
+            let frame = CGRect(origin: .init(x: xOffset, y: 0.0), size: size)
             
-            let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
+            let attributes = Attributes(forCellWith: indexPath)
             attributes.frame = frame
+            
+            if item == 0, mode == .hidingFirstItem {
+                attributes.alpha = 0.0
+            }
+            else {
+                attributes.alpha = 1.0
+            }
+            
+            attributes.visibleArea = collectionView.bounds.intersection(frame)
+            
             currentAttributes.append(attributes)
             
             contentSize.width = max(contentSize.width, frame.maxX)
-            xOffset += width + lineSpacing
+            xOffset += size.width + lineSpacing
         }
         
         contentSize.height = height
     }
     
     override func initialLayoutAttributesForAppearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        print("Will appear \(itemIndexPath.item) from \(previousAttributes[itemIndexPath.item]) to \(currentAttributes[itemIndexPath.item])")
         return previousAttributes[itemIndexPath.item]
     }
     
@@ -81,26 +138,20 @@ class PhotoLayout: UICollectionViewLayout {
         return currentAttributes[indexPath.item]
     }
     
-    override func finalLayoutAttributesForDisappearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
-        return layoutAttributesForItem(at: itemIndexPath)
-    }
-    
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         return currentAttributes.filter { rect.intersects($0.frame) }
     }
     
     override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
-        let oldBounds = collectionView.bounds
-        if !oldBounds.size.equalTo(newBounds.size) {
-            return true
-        }
-        return false
+        return newBounds.height != collectionView.bounds.height
     }
     
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
-        Log(selectedCellIndexPath)
-        guard let selectedCellIndexPath = selectedCellIndexPath else { return proposedContentOffset }
-        Log(selectedCellIndexPath)
+        guard let selectedCellIndexPath = selectedCellIndexPath else {
+            print("Has no selected item. Return proposed offset \(proposedContentOffset)")
+            return proposedContentOffset
+        }
+        
         var finalContentOffset = proposedContentOffset
         
         if let itemFrame = layoutAttributesForItem(at: selectedCellIndexPath)?.frame {
@@ -119,7 +170,19 @@ class PhotoLayout: UICollectionViewLayout {
             }
             Log(finalContentOffset)
         }
+        
+        print("Has selected item. Offset: \(finalContentOffset)")
+
         return finalContentOffset
+    }
+    
+    public func updateVisibleArea(_ area: CGRect, itemAt indexPath: IndexPath, cell: UICollectionViewCell) {
+        
+        let attributes = currentAttributes[indexPath.item]
+        if attributes.visibleArea != area {
+            attributes.visibleArea = area
+            cell.apply(currentAttributes[indexPath.item])
+        }
     }
 }
 
