@@ -22,7 +22,7 @@ extension UIAlertController {
     ///   - selection: type and action for selection of asset/assets
     
     public func addTelegramPicker(selection: @escaping TelegramSelection,
-                                  localizer: TelegramPickerLocalizable) {
+                                  localizer: TelegramPickerResourceProvider) {
         let vc = TelegramPickerViewController(selection: selection, localizer: localizer)
         set(vc: vc)
     }
@@ -232,12 +232,12 @@ final public class TelegramPickerViewController: UIViewController {
     lazy var selectedAssets = [PHAsset]()
     
     let selection: TelegramSelection
-    let localizer: TelegramPickerLocalizable
+    let localizer: TelegramPickerResourceProvider
     
     // MARK: Initialize
     
     required public init(selection: @escaping TelegramSelection,
-                         localizer: TelegramPickerLocalizable) {
+                         localizer: TelegramPickerResourceProvider) {
         self.selection = selection
         self.localizer = localizer
         super.init(nibName: nil, bundle: nil)

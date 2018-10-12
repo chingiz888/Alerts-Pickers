@@ -1,7 +1,8 @@
 import Foundation
 import UIKit
 
-public struct ExampleTelegramPickerLocalizer: TelegramPickerLocalizable {
+public struct ExampleTelegramPickerLocalizer: TelegramPickerResourceProvider {
+    
     public func localized(buttonType: LocalizableButtonType) -> String {
         switch buttonType {
         case .photoOrVideo: return "Photo or Video"
@@ -52,6 +53,10 @@ public struct ExampleTelegramPickerLocalizer: TelegramPickerLocalizable {
         let alert = UIAlertController(style: .alert, title: "Error", message: error.localizedDescription)
         alert.addAction(title: "OK")
         return alert
+    }
+    
+    public func resourceProviderForLocationPicker() -> LocationPickerViewControllerResourceProvider? {
+        return nil
     }
     
 }

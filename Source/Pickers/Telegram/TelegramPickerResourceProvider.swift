@@ -25,12 +25,14 @@ public enum Failure {
     case error(Error)
 }
 
-public protocol TelegramPickerLocalizable {
+public protocol TelegramPickerResourceProvider {
     
     func localized(buttonType: LocalizableButtonType) -> String
     
     /// Perform dismisser in your action block to dismiss this alert from a presenting controller.
     func localizedAlert(failure: Failure) -> UIAlertController?
+    
+    func resourceProviderForLocationPicker() -> LocationPickerViewControllerResourceProvider?
     
 }
 

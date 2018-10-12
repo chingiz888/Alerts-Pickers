@@ -11,12 +11,47 @@ extension UIAlertController {
     /// - Parameters:
     ///   - selection: type and action for selection of asset/assets
     
-    public func addLocationPicker(location: Location? = nil, completion: @escaping LocationPickerViewController.CompletionHandler) {
+    public func addLocationPicker(location: Location? = nil,
+                                  resourceProvider: LocationPickerViewControllerResourceProvider? = nil,
+                                  completion: @escaping LocationPickerViewController.CompletionHandler) {
         let vc = LocationPickerViewController()
+        if let resourceProvider = resourceProvider {
+            vc.resourceProvider = resourceProvider
+        }
         vc.location = location
         vc.completion = completion
         set(vc: vc)
     }
+}
+
+public protocol LocationPickerViewControllerResourceProvider {
+    
+    func localizedString(for type: LocationPickerViewControllerResourceStringType) -> String
+    
+    func imageForLocationButton() -> UIImage?
+    
+}
+
+public struct LocationPickerViewControllerSimpleResourceProvider: LocationPickerViewControllerResourceProvider {
+    
+    public func localizedString(for type: LocationPickerViewControllerResourceStringType) -> String {
+        switch type {
+        case .searchBarPlaceholder: return "Search or enter an address"
+        case .selectButtonTitle: return "Select"
+        case .searchHistoryLabel: return "Search History"
+        }
+    }
+    
+    public func imageForLocationButton() -> UIImage? {
+        return nil
+    }
+    
+}
+
+public enum LocationPickerViewControllerResourceStringType: Int {
+    case searchBarPlaceholder
+    case searchHistoryLabel
+    case selectButtonTitle
 }
 
 final public class LocationPickerViewController: UIViewController {
@@ -43,10 +78,20 @@ final public class LocationPickerViewController: UIViewController {
 	/// see `region` property of `MKLocalSearchRequest`
 	/// default: false
 	public var useCurrentLocationAsHint = false
+    
+    public var resourceProvider: LocationPickerViewControllerResourceProvider = LocationPickerViewControllerSimpleResourceProvider()
 	
-	public var searchBarPlaceholder = "Search or enter an address"
-	public var searchHistoryLabel = "Search History"
-    public var selectButtonTitle = "Select"
+    public var searchBarPlaceholder: String {
+        return resourceProvider.localizedString(for: .searchBarPlaceholder)
+    }
+    
+    public var searchHistoryLabel: String {
+        return resourceProvider.localizedString(for: .searchHistoryLabel)
+    }
+    
+    public var selectButtonTitle: String {
+        return resourceProvider.localizedString(for: .selectButtonTitle)
+    }
 	
 	public var mapType: MKMapType = .standard {
 		didSet {
@@ -85,7 +130,7 @@ final public class LocationPickerViewController: UIViewController {
         $0.backgroundColor = UIColor.white.withAlphaComponent(0.8)
         $0.layer.masksToBounds = true
         $0.layer.cornerRadius = 22
-        $0.setImage(#imageLiteral(resourceName: "geolocation"), for: UIControlState())
+        $0.setImage(resourceProvider.imageForLocationButton(), for: UIControlState())
         $0.addTarget(self, action: #selector(LocationPickerViewController.currentLocationPressed),
                          for: .touchUpInside)
         return $0
