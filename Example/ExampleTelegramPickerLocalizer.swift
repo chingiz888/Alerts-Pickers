@@ -25,7 +25,7 @@ public struct ExampleTelegramPickerLocalizer: TelegramPickerResourceProvider {
     
     private func noCameraAccessAlert() -> UIAlertController {
         /// User has denied the current app to access the camera.
-        let productName = Bundle.main.infoDictionary!["CFBundleName"]!
+        let productName = Bundle.main.dlgpicker_appName
         let alert = UIAlertController(style: .alert, title: "Permission denied", message: "\(productName) does not have access to camera. Please, allow the application to access to camera.")
         alert.addAction(title: "Settings", style: .destructive) { action in
             if let settingsURL = URL(string: UIApplicationOpenSettingsURLString) {
@@ -38,7 +38,7 @@ public struct ExampleTelegramPickerLocalizer: TelegramPickerResourceProvider {
     
     private func noPhotosAccessAlert() -> UIAlertController {
         /// User has denied the current app to access the contacts.
-        let productName = Bundle.main.infoDictionary!["CFBundleName"]!
+        let productName = Bundle.main.dlgpicker_appName
         let alert = UIAlertController(style: .alert, title: "Permission denied", message: "\(productName) does not have access to contacts. Please, allow the application to access to your photo library.")
         alert.addAction(title: "Settings", style: .destructive) { action in
             if let settingsURL = URL(string: UIApplicationOpenSettingsURLString) {

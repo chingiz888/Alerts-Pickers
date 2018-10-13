@@ -177,7 +177,7 @@ final public class PhotoLibraryPickerViewController: UIViewController {
             
         case .denied, .restricted:
             /// User has denied the current app to access the contacts.
-            let productName = Bundle.main.infoDictionary!["CFBundleName"]!
+            let productName = Bundle.main.dlgpicker_appName
             let alert = UIAlertController(style: .alert, title: "Permission denied", message: "\(productName) does not have access to contacts. Please, allow the application to access to your photo library.")
             alert.addAction(title: "Settings", style: .destructive) { action in
                 if let settingsURL = URL(string: UIApplicationOpenSettingsURLString) {
