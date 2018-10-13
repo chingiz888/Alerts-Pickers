@@ -508,9 +508,13 @@ final public class TelegramPickerViewController: UIViewController {
             }
             
         case .location:
-            alertController?.addLocationPicker { location in
-                self.selection(TelegramSelectionType.location(location))
-            }
+            let provider = self.localizer.resourceProviderForLocationPicker()
+            alertController?.addLocationPicker(location: nil,
+                                               resourceProvider: provider,
+                                               completion: { [weak self] (location) in
+                                                
+                                                self?.selection(TelegramSelectionType.location(location))
+            })
             
         case .contact:
             alertController?.addContactsPicker { contact in
