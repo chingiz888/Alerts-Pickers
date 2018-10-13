@@ -493,38 +493,43 @@ final public class TelegramPickerViewController: UIViewController {
         switch button {
             
         case .photoOrVideo:
+            let selection = self.selection
             alertController?.addPhotoLibraryPicker(flow: .vertical, paging: false, selection: .multiple(action: { assets in
-                self.selection(TelegramSelectionType.photo(assets))
+                selection(TelegramSelectionType.photo(assets))
             }))
             
         case .photoAsFile:
+            let selection = self.selection
             alertController?.addPhotoLibraryPicker(flow: .vertical, paging: false, selection: .multiple(action: { assets in
-                self.selection(TelegramSelectionType.photosAsDocuments(assets))
+                selection(TelegramSelectionType.photosAsDocuments(assets))
             }))
             
         case .documentAsFile:
-            alertController?.dismiss(animated: true) { [weak self] in
-                self?.selection(.document)
+            let selection = self.selection
+            alertController?.dismiss(animated: true) {
+                selection(.document)
             }
             
         case .location:
+            let selection = self.selection
             let provider = self.localizer.resourceProviderForLocationPicker()
             alertController?.addLocationPicker(location: nil,
                                                resourceProvider: provider,
-                                               completion: { [weak self] (location) in
-                                                
-                                                self?.selection(TelegramSelectionType.location(location))
+                                               completion: { location in
+                                                selection(TelegramSelectionType.location(location))
             })
             
         case .contact:
+            let selection = self.selection
             alertController?.addContactsPicker { contact in
-                self.selection(TelegramSelectionType.contact(contact))
+                selection(TelegramSelectionType.contact(contact))
             }
             
         case .sendPhotos:
             let assets = selectedAssets
-            alertController?.dismiss(animated: true) { [weak self] in
-                self?.selection(TelegramSelectionType.photo(assets))
+            let selection = self.selection
+            alertController?.dismiss(animated: true) {
+                selection(TelegramSelectionType.photo(assets))
             }
             
         case .file:
