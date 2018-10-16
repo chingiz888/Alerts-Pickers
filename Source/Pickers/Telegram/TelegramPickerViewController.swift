@@ -456,13 +456,31 @@ final public class TelegramPickerViewController: UIViewController {
         
         if mode != newMode {
             applyMode(newMode)
-        }
-        else {
+        } else {
             updateSendButtonsTitleIfNeeded()
         }
         
+        //Reload all visible cells because need to update selection index
+        updateVisibleSelectionIndexes()
+        
         let scrollAnimated = oldMode == newMode
         collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: scrollAnimated)
+    }
+    
+    func updateVisibleSelectionIndexes() {
+        let visibleCells = collectionView.visibleCells.compactMap({ $0 as? CollectionViewCustomContentCell<UIImageView> })
+        for visibleCell in visibleCells {
+            if let indexPath = collectionView.indexPath(for: visibleCell) {
+                let item = items[indexPath.item]
+                switch item {
+                case .photo(let _asset), .video(let _asset):
+                    if let indexForUpdate = selectedAssets.index(of: _asset) {
+                        visibleCell.updateSelectionIndex(indexForUpdate + 1)
+                    }
+                default:()
+                }
+            }
+        }
     }
     
     func updateSendButtonsTitleIfNeeded() {
@@ -641,6 +659,10 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
                 Assets.resolve(asset: asset, size: size) { [weak self] new in
                     self?.updatePhoto(new, asset: asset)
                     photoCell.customContentView.image = new
+                    
+                    if let index = self?.selectedAssets.index(of: asset) {
+                        photoCell.updateSelectionIndex(index + 1)
+                    }
                 }
             }
         case .video(let asset):
@@ -655,6 +677,10 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
                     self?.updatePhoto(new, asset: asset)
                     videoCell.customContentView.image = new
                     videoCell.updateVideo(duration: asset.duration)
+                    
+                    if let index = self?.selectedAssets.index(of: asset) {
+                        videoCell.updateSelectionIndex(index + 1)
+                    }
                 }
             }
             

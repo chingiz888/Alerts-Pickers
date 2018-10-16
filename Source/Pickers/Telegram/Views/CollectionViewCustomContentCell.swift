@@ -6,8 +6,9 @@ public enum CollectionViewCustomContentCellSelectionElement: Int {
     case selectedCircle
     case unselectedCircle
     case selectedPoint
+    case selectedIndexLabel
     
-    public static let all: [CollectionViewCustomContentCellSelectionElement] = [.selectedCircle, .unselectedCircle, .selectedPoint]
+    public static let all: [CollectionViewCustomContentCellSelectionElement] = [.selectedCircle, .unselectedCircle, .selectedPoint, .selectedIndexLabel]
 }
 
 public class CollectionViewCustomContentCell<CustomContentView: UIView>: UICollectionViewCell {
@@ -80,7 +81,13 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
         let selected: UIView = UIView()
         selected.addSubview(selectionElementView(.selectedCircle))
         selected.addSubview(selectionElementView(.selectedPoint))
+        selected.addSubview(selectionElementView(.selectedIndexLabel))
         selectedBackgroundView = selected
+    }
+    
+    public func updateSelectionIndex(_ index: Int) {
+        guard let label = selectionElementView(.selectedIndexLabel) as? UILabel else { return }
+        label.text = String(index)
     }
     
     private var proposedSelectionCircleSize: CGSize {
@@ -107,6 +114,7 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
         updateSelectionAppearance(.unselectedCircle)
         updateSelectionAppearance(.selectedCircle)
         updateSelectionAppearance(.selectedPoint)
+        updateSelectionAppearance(.selectedIndexLabel)
     }
     
     func createSelectionElement(_ element: SelectionElement) -> UIView {
@@ -131,6 +139,12 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
                 $0.layer.borderColor = UIColor.white.cgColor
                 $0.layer.masksToBounds = false
             })
+        case .selectedIndexLabel:
+            let label = UILabel(frame: CGRect.zero)
+            label.textColor = UIColor.white
+            label.textAlignment = .center
+            label.font = UIFont.systemFont(ofSize: 12)
+            return label
         }
     }
     
@@ -145,6 +159,7 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
         case .selectedCircle: updateAppearance(forCircle: selectionElementView(.selectedCircle))
         case .unselectedCircle: updateAppearance(forCircle: selectionElementView(.unselectedCircle))
         case .selectedPoint: updateAppearance(forPoint: selectionElementView(.selectedPoint))
+        case .selectedIndexLabel: updateAppearance(forCircle: selectionElementView(.selectedIndexLabel))
         }
     }
     
@@ -162,9 +177,10 @@ public class CollectionViewCustomContentCell<CustomContentView: UIView>: UIColle
         
         if view === selectionElementView(.selectedCircle) {
             self.updateSelectionLayout(element: .selectedCircle)
-        }
-        else if view === selectionElementView(.unselectedCircle) {
+        } else if view === selectionElementView(.unselectedCircle) {
             self.updateSelectionLayout(element: .unselectedCircle)
+        } else if view is UILabel {
+            self.updateSelectionLayout(element: .selectedIndexLabel)
         }
         
         view.dlgpicker_setupRoundCorners()
