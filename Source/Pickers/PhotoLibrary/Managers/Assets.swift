@@ -30,7 +30,9 @@ public struct Assets {
         }
         
         DispatchQueue.global(qos: .userInitiated).async {
-            let fetchResult = PHAsset.fetchAssets(with: .image, options: PHFetchOptions())
+            let fetchOptions = PHFetchOptions()
+            fetchOptions.sortDescriptors = [NSSortDescriptor(key:"creationDate", ascending: true)]
+            let fetchResult = PHAsset.fetchAssets(with: fetchOptions)
             
             if fetchResult.count > 0 {
                 var assets = [PHAsset]()

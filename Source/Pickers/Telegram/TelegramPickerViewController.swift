@@ -31,7 +31,7 @@ extension UIAlertController {
 
 
 final public class TelegramPickerViewController: UIViewController {
-
+    
     var buttons: [ButtonType] {
         switch mode {
         case .normal: return [.photoOrVideo, .file, .location, .contact]
@@ -52,6 +52,7 @@ final public class TelegramPickerViewController: UIViewController {
     
     enum StreamItem: Equatable {
         case photo(PHAsset)
+        case video(PHAsset)
         case camera
         
         var isCamera: Bool {
@@ -164,10 +165,11 @@ final public class TelegramPickerViewController: UIViewController {
     func sizeForAsset(asset: PHAsset) -> CGSize {
         switch mode {
         case .bigPhotoPreviews:
+            let minValue: CGFloat = UI.maxHeight / UI.multiplier
             var size = CGSize.init(width: asset.pixelWidth, height: asset.pixelHeight)
             let multiplier = UI.maxHeight / size.height
             size.height *= multiplier
-            size.width *= multiplier
+            size.width = min(minValue, size.width*multiplier)
             return size
         case .normal:
             let value: CGFloat = UI.maxHeight / UI.multiplier
@@ -182,13 +184,13 @@ final public class TelegramPickerViewController: UIViewController {
         case .camera:
             let side = UI.maxHeight / UI.multiplier
             return CGSize.init(width: side, height: side)
-        case .photo(let asset):
+        case .photo(let asset), .video(let asset):
             return sizeForAsset(asset: asset)
         }
     }
     
     // MARK: Properties
-
+    
     fileprivate lazy var collectionView: UICollectionView = { [unowned self] in
         $0.dataSource = self
         $0.delegate = self
@@ -196,7 +198,7 @@ final public class TelegramPickerViewController: UIViewController {
         $0.showsVerticalScrollIndicator = false
         $0.showsHorizontalScrollIndicator = false
         $0.decelerationRate = UIScrollViewDecelerationRateFast
-//        $0.contentInsetAdjustmentBehavior = .never
+        //        $0.contentInsetAdjustmentBehavior = .never
         $0.contentInset = UI.insets
         $0.backgroundColor = .clear
         $0.layer.masksToBounds = false
@@ -266,7 +268,7 @@ final public class TelegramPickerViewController: UIViewController {
         super.viewWillLayoutSubviews()
         tableView.tableHeaderView?.frame.size.height = preferredTableHeaderHeight
     }
-        
+
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         preferredContentSize.height = tableView.contentSize.height
@@ -300,11 +302,20 @@ final public class TelegramPickerViewController: UIViewController {
     
     func resetItems(assets: [PHAsset]) {
         
-        var newItems = assets.map({StreamItem.photo($0)})
+        var newItems = assets.compactMap({ asset -> StreamItem? in
+            switch asset.mediaType {
+            case .video:
+                return StreamItem.video(asset)
+            case .image:
+                return StreamItem.photo(asset)
+            default:
+                return nil
+            }
+        })
         if shouldShowCameraStream {
             newItems.insert(.camera, at: 0)
         }
-       
+        
         resetItems(newItems: newItems)
     }
     
@@ -425,13 +436,13 @@ final public class TelegramPickerViewController: UIViewController {
             if let stream = cameraStream {
                 selection(.camera(stream))
             }
-        case .photo(let asset):
+        case .photo(let asset), .video(let asset):
             action(withAsset: asset, at: indexPath)
         }
     }
     
     func action(withAsset asset: PHAsset, at indexPath: IndexPath) {
-        
+        //TODO: open in full screne
         guard mode != .documentType else {
             return
         }
@@ -479,10 +490,10 @@ final public class TelegramPickerViewController: UIViewController {
             tableView.reloadSections([0], with: .fade)
         }
         
-//        collectionView.performBatchUpdates({
-            self.layout.mode = (newMode == .normal) ? .normal : .hidingFirstItem
-//        })
-
+        //        collectionView.performBatchUpdates({
+        self.layout.mode = (newMode == .normal) ? .normal : .hidingFirstItem
+        //        })
+        
     }
     
     func switchToDocumentTypeMenu() {
@@ -558,7 +569,7 @@ extension TelegramPickerViewController: UICollectionViewDelegate {
         switch items[indexPath.item] {
         case .camera:
             return false
-        case .photo(_):
+        case .photo(_), .video(_):
             return true
         }
     }
@@ -583,7 +594,7 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
         case .camera:
             return dequeue(collectionView, cellForCameraAt: indexPath)
             
-        case .photo(let asset):
+        case .photo(let asset), .video(let asset):
             return dequeue(collectionView, cellForAsset: asset, at: indexPath)
         }
         
@@ -610,7 +621,8 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         
         switch items[indexPath.item] {
-        case .photo(let asset):
+        //TODO: Add Cell for video
+        case .photo(let asset), .video(let asset):
             guard let photoCell = cell as? CollectionViewPhotoCell else {
                 return
             }
