@@ -16,6 +16,7 @@
 		D77815E82167A39F00DA6613 /* CollectionViewCameraCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77815E72167A39F00DA6613 /* CollectionViewCameraCell.swift */; };
 		D7950F51217216CC005822F1 /* Bundle+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7950F50217216CC005822F1 /* Bundle+Extensions.swift */; };
 		D7D51A552167F205006455B6 /* AVCaptureSession+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7D51A542167F205006455B6 /* AVCaptureSession+Extensions.swift */; };
+		F27C7DFD2175ECF100266414 /* CollectionViewVideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F27C7DFC2175ECF100266414 /* CollectionViewVideoCell.swift */; };
 		FA005E922015D769001EA8C6 /* Contacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA005E912015D769001EA8C6 /* Contacts.swift */; };
 		FA005E942015E490001EA8C6 /* UISearchBar+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA005E932015E490001EA8C6 /* UISearchBar+Extensions.swift */; };
 		FA005E9620162BB5001EA8C6 /* Assets.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA005E9520162BB5001EA8C6 /* Assets.swift */; };
@@ -90,6 +91,7 @@
 		D77815E72167A39F00DA6613 /* CollectionViewCameraCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewCameraCell.swift; sourceTree = "<group>"; };
 		D7950F50217216CC005822F1 /* Bundle+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Extensions.swift"; sourceTree = "<group>"; };
 		D7D51A542167F205006455B6 /* AVCaptureSession+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AVCaptureSession+Extensions.swift"; sourceTree = "<group>"; };
+		F27C7DFC2175ECF100266414 /* CollectionViewVideoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewVideoCell.swift; sourceTree = "<group>"; };
 		FA005E912015D769001EA8C6 /* Contacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contacts.swift; sourceTree = "<group>"; };
 		FA005E932015E490001EA8C6 /* UISearchBar+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UISearchBar+Extensions.swift"; sourceTree = "<group>"; };
 		FA005E9520162BB5001EA8C6 /* Assets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Assets.swift; sourceTree = "<group>"; };
@@ -439,6 +441,7 @@
 			children = (
 				FA4B0374201A817200D282E2 /* CollectionViewPhotoCell.swift */,
 				D77815E72167A39F00DA6613 /* CollectionViewCameraCell.swift */,
+				F27C7DFC2175ECF100266414 /* CollectionViewVideoCell.swift */,
 				FA25CAA42018677A00D1CB87 /* LikeButtonCell.swift */,
 				D77815E42167A1EB00DA6613 /* CollectionViewCustomContentCell.swift */,
 			);
@@ -603,6 +606,7 @@
 				D725CCC8216CD16F001A6974 /* ExampleTelegramPickerLocalizer.swift in Sources */,
 				FABFAA64200C1D4600961895 /* GradientSlider.swift in Sources */,
 				FA7CE6D920149F9B00FB3E72 /* ContactsPickerViewController.swift in Sources */,
+				F27C7DFD2175ECF100266414 /* CollectionViewVideoCell.swift in Sources */,
 				FA005E9820166D51001EA8C6 /* Contact.swift in Sources */,
 				FA4B036B201A119C00D282E2 /* LocationPickerViewController.swift in Sources */,
 				FAAB5C8C201BCAFB00CCE04D /* CountryCell.swift in Sources */,
