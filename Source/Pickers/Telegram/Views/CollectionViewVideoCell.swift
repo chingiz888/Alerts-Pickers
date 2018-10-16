@@ -31,11 +31,16 @@ public final class CollectionViewVideoCell: CollectionViewCustomContentCell<UIIm
         return formatter
     }()
     
+    internal var gradientBackgroundImageView: UIImageView?
+    
+    private let gradientBackgroundHeight: CGFloat = 16.0
+    
     //MARK: Public Methods
     
     public override func setup() {
         super.setup()
         
+        setupGradientBackground()
         setupVideoIcon()
         setupVideoDurationLabel()
     }
@@ -47,6 +52,7 @@ public final class CollectionViewVideoCell: CollectionViewCustomContentCell<UIIm
                                            size: videoIconImageView?.bounds.size ?? CGSize.zero)
         videoDurationLabel?.frame = CGRect(origin: CGPoint(x: (bounds.maxX - bounds.width / 2) - videoDurationLabelMarginRight, y: bounds.maxY - videoDurationLabelMarginBottom),
                                            size: CGSize(width: bounds.width / 2, height: videoDurationLabelHeight))
+        gradientBackgroundImageView?.frame = CGRect(x: 0, y: bounds.maxY - gradientBackgroundHeight, width: bounds.width, height: gradientBackgroundHeight)
     }
     
     public func updateVideo(duration: TimeInterval) {
@@ -71,6 +77,12 @@ private extension CollectionViewVideoCell {
         videoDurationLabel?.textAlignment = .right
         
         addSubview(videoDurationLabel!)
+    }
+    
+    func setupGradientBackground() {
+        gradientBackgroundImageView = UIImageView(image: #imageLiteral(resourceName: "gradient_black_transparent"))
+        
+        customContentView.addSubview(gradientBackgroundImageView!)
     }
     
 }
