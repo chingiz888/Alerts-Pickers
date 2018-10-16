@@ -66,7 +66,8 @@ public final class CollectionViewVideoCell: CollectionViewCustomContentCell<UIIm
 private extension CollectionViewVideoCell {
     
     func setupVideoIcon() {
-        videoIconImageView = UIImageView(image: #imageLiteral(resourceName: "video"))
+        let bundle = Bundle(for: CollectionViewVideoCell.self)
+        videoIconImageView = UIImageView(image: UIImage(named: "video", in: bundle, compatibleWith: nil))
         addSubview(videoIconImageView!)
     }
     
@@ -80,7 +81,9 @@ private extension CollectionViewVideoCell {
     }
     
     func setupGradientBackground() {
-        gradientBackgroundImageView = UIImageView(image: #imageLiteral(resourceName: "gradient_black_transparent"))
+        let bundle = Bundle(for: CollectionViewVideoCell.self)
+
+        gradientBackgroundImageView = UIImageView(image: UIImage(named: "gradient_black_transparent", in: bundle, compatibleWith: nil))
         
         customContentView.addSubview(gradientBackgroundImageView!)
     }
