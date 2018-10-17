@@ -65,9 +65,25 @@ public struct Assets {
         requestOptions.isNetworkAccessAllowed = true
         
         imageManager.requestImage(for: asset, targetSize: size, contentMode: .aspectFill, options: requestOptions) { image, info in
-            if let info = info, info["PHImageFileUTIKey"] == nil {
-                DispatchQueue.main.async {
-                    completion(image)
+            DispatchQueue.main.async {
+                completion(image)
+            }
+        }
+    }
+    
+    public static func resolveVideo(asset: PHAsset, size: CGSize = PHImageManagerMaximumSize, completion: @escaping (_ image: URL?) -> Void) {
+        let imageManager = PHImageManager.default()
+        
+        let options: PHVideoRequestOptions = PHVideoRequestOptions()
+        options.version = .original
+        options.isNetworkAccessAllowed = true
+        
+        imageManager.requestAVAsset(forVideo: asset, options: options) { (asset, audioMix, info) in
+            DispatchQueue.main.async {
+                if let urlAsset = asset as? AVURLAsset {
+                    completion(urlAsset.url)
+                } else {
+                    completion(nil)
                 }
             }
         }

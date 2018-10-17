@@ -28,7 +28,7 @@ extension UIAlertController {
     }
 }
 
-
+extension UIImageView: DisplaceableView {}
 
 final public class TelegramPickerViewController: UIViewController {
     
@@ -65,8 +65,31 @@ final public class TelegramPickerViewController: UIViewController {
         public static func == (lhs: StreamItem, rhs: StreamItem) -> Bool {
             switch (lhs, rhs) {
             case (let .photo(lhsAsset), let .photo(rhsAsset)): return lhsAsset == rhsAsset
+            case (let .video(lhsAsset), let .video(rhsAsset)): return lhsAsset == rhsAsset
             case (.camera, .camera): return true
             default: return false
+            }
+        }
+        
+        var galaryItem: GalleryItem? {
+            switch self {
+            case .photo(let asset):
+                return GalleryItem.image(fetchImageBlock: { completion in
+                    Assets.resolve(asset: asset) { image in
+                        completion(image ?? UIImage())
+                    } })
+            case .video(let asset):
+                return GalleryItem.video(fetchPreviewImageBlock:  { completion in
+                    Assets.resolve(asset: asset) { image in
+                        completion(image ?? UIImage())
+                        }
+                }, videoURL: { completion in
+                    Assets.resolveVideo(asset: asset, completion: { (url) in
+                        completion(url)
+                    })
+                })
+            case .camera:
+                return nil
             }
         }
     }
@@ -234,6 +257,9 @@ final public class TelegramPickerViewController: UIViewController {
     
     lazy var items = [StreamItem]()
     lazy var selectedAssets = [PHAsset]()
+    var galleryItems: [StreamItem] {
+        return items.filter({ $0 != .camera })
+    }
     
     let selection: TelegramSelection
     let localizer: TelegramPickerResourceProvider
@@ -439,12 +465,12 @@ final public class TelegramPickerViewController: UIViewController {
                 selection(.camera(stream))
             }
         case .photo(let asset), .video(let asset):
-            action(withAsset: asset, at: indexPath)
+//            action(withAsset: asset, at: indexPath)
+            openPreview(with: asset, at: indexPath)
         }
     }
     
     func action(withAsset asset: PHAsset, at indexPath: IndexPath) {
-        //TODO: open in full screne
         guard mode != .documentType else {
             return
         }
@@ -465,6 +491,16 @@ final public class TelegramPickerViewController: UIViewController {
         
         let scrollAnimated = oldMode == newMode
         collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: scrollAnimated)
+    }
+    
+    func openPreview(with asset: PHAsset, at indexPath: IndexPath) {
+        let galleryItemIndex = galleryItems.index(of: items[indexPath.item]) ?? 0
+        let galleryViewController = GalleryViewController(startIndex: galleryItemIndex,
+                                                          itemsDataSource: self,
+                                                          itemsDelegate: self,
+                                                          displacedViewsDataSource: self,
+                                                          configuration: galleryConfiguration())
+        present(galleryViewController, animated: false, completion: nil)
     }
     
     func updateVisibleSelectionIndexes() {
@@ -783,4 +819,94 @@ extension TelegramPickerViewController: UITableViewDataSource {
         cell.textLabel?.text = title(for: buttons[indexPath.row])
         return cell
     }
+}
+
+//MARK: - GalleryItemsDataSource
+
+extension TelegramPickerViewController: GalleryItemsDataSource {
+    
+    public func itemCount() -> Int {
+        return galleryItems.count
+    }
+    
+    public func provideGalleryItem(_ index: Int) -> GalleryItem {
+        return galleryItems[index].galaryItem ?? GalleryItem.image(fetchImageBlock: { $0(UIImage()) })
+    }
+    
+}
+
+//MARK: - GalleryItemsDelegate
+
+extension TelegramPickerViewController: GalleryItemsDelegate {
+    
+    public func removeGalleryItem(at index: Int) {
+        
+    }
+    
+}
+
+//MARK: - GalleryDisplacedViewsDataSource
+
+extension TelegramPickerViewController: GalleryDisplacedViewsDataSource {
+    
+    public func provideDisplacementItem(atIndex index: Int) -> DisplaceableView? {
+        let item = galleryItems[index]
+        let indexPath = IndexPath(item: items.index(of: item) ?? 0, section: 0)
+        let cell = collectionView.cellForItem(at: indexPath) as? CollectionViewCustomContentCell<UIImageView>
+        return cell?.customContentView
+    }
+    
+}
+
+private extension TelegramPickerViewController {
+    
+    func galleryConfiguration() -> GalleryConfiguration {
+        return [
+            GalleryConfigurationItem.closeButtonMode(.builtIn),
+            
+            GalleryConfigurationItem.pagingMode(.standard),
+            GalleryConfigurationItem.presentationStyle(.displacement),
+            GalleryConfigurationItem.hideDecorationViewsOnLaunch(false),
+            
+            GalleryConfigurationItem.swipeToDismissMode(.vertical),
+            GalleryConfigurationItem.toggleDecorationViewsBySingleTap(false),
+            GalleryConfigurationItem.activityViewByLongPress(false),
+            
+            GalleryConfigurationItem.overlayColor(UIColor(white: 0.035, alpha: 1)),
+            GalleryConfigurationItem.overlayColorOpacity(1),
+            GalleryConfigurationItem.overlayBlurOpacity(1),
+            GalleryConfigurationItem.overlayBlurStyle(UIBlurEffectStyle.light),
+            
+            GalleryConfigurationItem.videoControlsColor(.white),
+            
+            GalleryConfigurationItem.maximumZoomScale(8),
+            GalleryConfigurationItem.swipeToDismissThresholdVelocity(500),
+            
+            GalleryConfigurationItem.doubleTapToZoomDuration(0.15),
+            
+            GalleryConfigurationItem.blurPresentDuration(0.5),
+            GalleryConfigurationItem.blurPresentDelay(0),
+            GalleryConfigurationItem.colorPresentDuration(0.25),
+            GalleryConfigurationItem.colorPresentDelay(0),
+            
+            GalleryConfigurationItem.blurDismissDuration(0.1),
+            GalleryConfigurationItem.blurDismissDelay(0.4),
+            GalleryConfigurationItem.colorDismissDuration(0.45),
+            GalleryConfigurationItem.colorDismissDelay(0),
+            
+            GalleryConfigurationItem.itemFadeDuration(0.3),
+            GalleryConfigurationItem.decorationViewsFadeDuration(0.15),
+            GalleryConfigurationItem.rotationDuration(0.15),
+            
+            GalleryConfigurationItem.displacementDuration(0.55),
+            GalleryConfigurationItem.reverseDisplacementDuration(0.25),
+            GalleryConfigurationItem.displacementTransitionStyle(.springBounce(0.7)),
+            GalleryConfigurationItem.displacementTimingCurve(.linear),
+            
+            GalleryConfigurationItem.statusBarHidden(true),
+            GalleryConfigurationItem.displacementKeepOriginalInPlace(false),
+            GalleryConfigurationItem.displacementInsetMargin(50)
+        ]
+    }
+    
 }
