@@ -114,4 +114,21 @@ extension UIButton {
 
         return button
     }
+    
+    static func selectionButton() -> UIButton {
+        let button = UIButton(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 40, height: 40)))
+        
+        let bundle = Bundle(for: GalleryViewController.self)
+        let selectedImage = UIImage(named: "selected_asset", in: bundle, compatibleWith: nil)
+        let unselectedImage = UIImage(named: "unselected_asset", in: bundle, compatibleWith: nil)
+        
+        button.setBackgroundImage(selectedImage, for: .selected)
+        button.setBackgroundImage(unselectedImage, for: .normal)
+        
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 14.0)
+        button.setTitleColor(UIColor.white, for: .selected)
+        
+        return button
+    }
+    
 }

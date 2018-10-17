@@ -500,6 +500,25 @@ final public class TelegramPickerViewController: UIViewController {
                                                           itemsDelegate: self,
                                                           displacedViewsDataSource: self,
                                                           configuration: galleryConfiguration())
+        galleryViewController.selectionCompletion = { [weak self] button in
+            //TODO: check for galleryViewController asset is in selected
+            guard let item = self?.galleryItems[galleryViewController.currentIndex] else { return }
+            
+            switch item {
+            case .photo(let asset), .video(let asset):
+                if self?.selectedAssets.contains(asset) == true {
+                    self?.selectedAssets.remove(asset)
+                    button.isSelected = false
+                } else {
+                    self?.selectedAssets.append(asset)
+                    button.setTitle(String(self?.selectedAssets.count ?? 1), for: .selected)
+                    button.isSelected = true
+                }
+            default:
+                break
+            }
+            self?.updateVisibleSelectionIndexes()
+        }
         present(galleryViewController, animated: false, completion: nil)
     }
     
@@ -838,6 +857,30 @@ extension TelegramPickerViewController: GalleryItemsDataSource {
 //MARK: - GalleryItemsDelegate
 
 extension TelegramPickerViewController: GalleryItemsDelegate {
+    
+    public func isItemSelected(at index: Int) -> Bool {
+        guard let item = galleryItems.item(at: index) else { return false }
+        switch item {
+        case .photo(let asset), .video(let asset):
+            return selectedAssets.contains(asset)
+        default:
+            return false
+        }
+    }
+    
+    public func itemSelectionIndex(at index: Int) -> Int? {
+        guard let item = galleryItems.item(at: index) else { return nil }
+        switch item {
+        case .photo(let asset), .video(let asset):
+            if let selectionIndex = selectedAssets.index(of: asset) {
+                return selectionIndex + 1
+            } else {
+                return nil
+            }
+        default:
+            return nil
+        }
+    }
     
     public func removeGalleryItem(at index: Int) {
         

@@ -58,6 +58,10 @@ class VideoViewController: ItemBaseController<VideoView> {
             welf.player?.addObserver(welf, forKeyPath: "status", options: NSKeyValueObservingOptions.new, context: nil)
             welf.player?.addObserver(welf, forKeyPath: "rate", options: NSKeyValueObservingOptions.new, context: nil)
             welf.isObservePlayer = true
+            
+            if welf.itemView.player == nil {
+                welf.itemView.player = welf.player
+            }
         }
     }
 

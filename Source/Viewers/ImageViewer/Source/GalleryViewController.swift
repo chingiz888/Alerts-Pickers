@@ -17,10 +17,12 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     open var headerView: UIView?
     /// A custom view at the bottom of the gallery with layout using default (or custom) pinning settings for footer.
     open var footerView: UIView?
+    //TODO: change close button to circle selection button
     fileprivate var closeButton: UIButton? = UIButton.closeButton()
+    fileprivate var selectionButton: UIButton? = UIButton.selectionButton()
     fileprivate var seeAllCloseButton: UIButton? = nil
-    fileprivate var thumbnailsButton: UIButton? = UIButton.thumbnailsButton()
-    fileprivate var deleteButton: UIButton? = UIButton.deleteButton()
+    fileprivate var thumbnailsButton: UIButton? =  nil
+    fileprivate var deleteButton: UIButton? = nil
     fileprivate let scrubber = VideoScrubber()
 
     fileprivate weak var initialItemController: ItemController?
@@ -43,10 +45,11 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     fileprivate var galleryPagingMode = GalleryPagingMode.standard
     fileprivate var headerLayout = HeaderLayout.center(25)
     fileprivate var footerLayout = FooterLayout.center(25)
-    fileprivate var closeLayout = ButtonLayout.pinRight(8, 16)
+    fileprivate var closeLayout = ButtonLayout.pinLeft(8, 16)
     fileprivate var seeAllCloseLayout = ButtonLayout.pinRight(8, 16)
-    fileprivate var thumbnailsLayout = ButtonLayout.pinLeft(8, 16)
+    fileprivate var thumbnailsLayout = ButtonLayout.pinRight(8, 8)
     fileprivate var deleteLayout = ButtonLayout.pinRight(8, 66)
+    fileprivate var selectionLayout = ButtonLayout.pinRight(12, 16)
     fileprivate var statusBarHidden = true
     fileprivate var overlayAccelerationFactor: CGFloat = 1
     fileprivate var rotationDuration = 0.15
@@ -65,6 +68,8 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     open var programmaticallyClosedCompletion: (() -> Void)?
     /// If set, launched after all animations finish when the swipe-to-dismiss (applies to all directions and cases) gesture is used.
     open var swipedToDismissCompletion:        (() -> Void)?
+    
+    open var selectionCompletion:        ((UIButton) -> Void)?
 
     @available(*, unavailable)
     required public init?(coder: NSCoder) { fatalError() }
@@ -239,6 +244,18 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
             self.view.addSubview(deleteButton)
         }
     }
+    
+    fileprivate func configureSelectionButton() {
+        guard let selectionButton = selectionButton else { return }
+        selectionButton.addTarget(self, action: #selector(GalleryViewController.selectItem), for: .touchUpInside)
+        selectionButton.alpha = 0
+        self.view.addSubview(selectionButton)
+        
+        if itemsDelegate?.isItemSelected(at: currentIndex) == true {
+            selectionButton.isSelected = true
+            selectionButton.setTitle(String(itemsDelegate?.itemSelectionIndex(at: currentIndex) ?? 1), for: .selected)
+        }
+    }
 
     fileprivate func configureScrubber() {
 
@@ -260,6 +277,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
         configureCloseButton()
         configureThumbnailsButton()
         configureDeleteButton()
+        configureSelectionButton()
         configureScrubber()
 
         self.view.clipsToBounds = false
@@ -321,6 +339,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
         layoutButton(closeButton, layout: closeLayout)
         layoutButton(thumbnailsButton, layout: thumbnailsLayout)
         layoutButton(deleteButton, layout: deleteLayout)
+        layoutButton(selectionButton, layout: selectionLayout)
         layoutHeaderView()
         layoutFooterView()
         layoutScrubber()
@@ -435,6 +454,10 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
             self?.deleteButton?.isEnabled = true
             self?.view.isUserInteractionEnabled = true
         }
+    }
+    
+    @objc fileprivate func selectItem(sender: UIButton) {
+        selectionCompletion?(sender)
     }
 
     //ThumbnailsimageBlock
@@ -612,6 +635,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
             self?.closeButton?.alpha = targetAlpha
             self?.thumbnailsButton?.alpha = targetAlpha
             self?.deleteButton?.alpha = targetAlpha
+            self?.selectionButton?.alpha = targetAlpha
 
             if let _ = self?.viewControllers?.first as? VideoViewController {
 
@@ -697,6 +721,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
             deleteButton?.alpha = alpha
             headerView?.alpha = alpha
             footerView?.alpha = alpha
+            selectionButton?.alpha = alpha
 
             if controller is VideoViewController {
                 scrubber.alpha = alpha
