@@ -14,6 +14,7 @@ open class VideoScrubber: UIControl {
     let playButton = UIButton.playButton(width: 50, height: 40)
     let pauseButton = UIButton.pauseButton(width: 50, height: 40)
     let replayButton = UIButton.replayButton(width: 50, height: 40)
+    let sendButton = UIButton.sendButton()
 
     let scrubber = Slider.createSlider(320, height: 20, pointerDiameter: 10, barHeight: 2)
     let timeLabel = UILabel(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 50, height: 20)))
@@ -129,9 +130,9 @@ open class VideoScrubber: UIControl {
         replayButton.frame = playButton.frame
 
         timeLabel.center = self.boundsCenter
-        timeLabel.frame.origin.x = self.bounds.maxX - timeLabel.bounds.width
+        timeLabel.frame.origin.x = self.bounds.maxX - timeLabel.bounds.width - sendButton.bounds.width * 1.5
 
-        scrubber.bounds.size.width = self.bounds.width - playButton.bounds.width - timeLabel.bounds.width
+        scrubber.bounds.size.width = self.bounds.width - playButton.bounds.width - timeLabel.bounds.width - sendButton.bounds.width * 1.5
         scrubber.bounds.size.height = 20
         scrubber.center = self.boundsCenter
         scrubber.frame.origin.x = playButton.frame.maxX

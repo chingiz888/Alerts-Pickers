@@ -58,6 +58,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     fileprivate var rotationMode = GalleryRotationMode.always
     fileprivate let swipeToDismissFadeOutAccelerationFactor: CGFloat = 6
     fileprivate var decorationViewsFadeDuration = 0.15
+    fileprivate var marginsBottom: CGFloat = 15.0
     
     /// COMPLETION BLOCKS
     /// If set, the block is executed right after the initial launch animations finish.
@@ -459,7 +460,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
         
         scrubber.bounds = CGRect(origin: CGPoint.zero, size: CGSize(width: self.view.bounds.width, height: 40))
         scrubber.center = self.view.boundsCenter
-        scrubber.frame.origin.y = (footerView?.frame.origin.y ?? self.view.bounds.maxY) - scrubber.bounds.height
+        scrubber.frame.origin.y = (footerView?.frame.origin.y ?? self.view.bounds.maxY) - scrubber.bounds.height - marginsBottom
     }
     
     @objc fileprivate func deleteItem() {
