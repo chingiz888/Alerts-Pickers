@@ -11,7 +11,7 @@ import UIKit
 extension UIApplication {
 
     static var applicationWindow: UIWindow {
-        return (UIApplication.shared.delegate?.window?.flatMap { $0 })!
+        return UIApplication.shared.keyWindow ?? UIWindow(frame: CGRect.zero)
     }
 
     static var isPortraitOnly: Bool {

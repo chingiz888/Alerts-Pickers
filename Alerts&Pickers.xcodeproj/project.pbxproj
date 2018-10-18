@@ -61,7 +61,7 @@
 		FA005E9820166D51001EA8C6 /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA005E9720166D51001EA8C6 /* Contact.swift */; };
 		FA25CAA52018677A00D1CB87 /* LikeButtonCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA25CAA42018677A00D1CB87 /* LikeButtonCell.swift */; };
 		FA3BB2892008B45600E06F8F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = FA3BB2882008B45600E06F8F /* README.md */; };
-		FA3BB2AC2008B46800E06F8F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FA3BB28B2008B46500E06F8F /* Assets.xcassets */; };
+		FA3BB2AC2008B46800E06F8F /* picker_assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FA3BB28B2008B46500E06F8F /* picker_assets.xcassets */; };
 		FA3BB2AD2008B46800E06F8F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FA3BB28C2008B46500E06F8F /* LaunchScreen.storyboard */; };
 		FA3BB2AF2008B46800E06F8F /* Label.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA3BB2902008B46500E06F8F /* Label.swift */; };
 		FA3BB2B02008B46800E06F8F /* SegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA3BB2912008B46500E06F8F /* SegmentedControl.swift */; };
@@ -176,7 +176,7 @@
 		FA3BB2732008B41B00E06F8F /* Alerts&Pickers.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Alerts&Pickers.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA3BB2822008B41B00E06F8F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		FA3BB2882008B45600E06F8F /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		FA3BB28B2008B46500E06F8F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FA3BB28B2008B46500E06F8F /* picker_assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = picker_assets.xcassets; sourceTree = "<group>"; };
 		FA3BB28D2008B46500E06F8F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		FA3BB2902008B46500E06F8F /* Label.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Label.swift; sourceTree = "<group>"; };
 		FA3BB2912008B46500E06F8F /* SegmentedControl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SegmentedControl.swift; sourceTree = "<group>"; };
@@ -353,7 +353,7 @@
 		FA3BB28A2008B46500E06F8F /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				FA3BB28B2008B46500E06F8F /* Assets.xcassets */,
+				FA3BB28B2008B46500E06F8F /* picker_assets.xcassets */,
 				FA3BB28C2008B46500E06F8F /* LaunchScreen.storyboard */,
 				FABFAA65200C961500961895 /* Main.storyboard */,
 				FA3BB2822008B41B00E06F8F /* Info.plist */,
@@ -738,7 +738,7 @@
 				FA3BB2CF2008B9FA00E06F8F /* LICENSE in Resources */,
 				FA3BB2BF2008B46900E06F8F /* Countries.bundle in Resources */,
 				FA3BB2AD2008B46800E06F8F /* LaunchScreen.storyboard in Resources */,
-				FA3BB2AC2008B46800E06F8F /* Assets.xcassets in Resources */,
+				FA3BB2AC2008B46800E06F8F /* picker_assets.xcassets in Resources */,
 				FA3BB2CD2008B98F00E06F8F /* Assets in Resources */,
 				FA3BB2892008B45600E06F8F /* README.md in Resources */,
 			);
