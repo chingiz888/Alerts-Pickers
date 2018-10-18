@@ -115,8 +115,8 @@ extension UIButton {
         return button
     }
     
-    static func selectionButton() -> UIButton {
-        let button = UIButton(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 40, height: 40)))
+    static func selectionButton(size: CGSize = CGSize(width: 40, height: 40)) -> UIButton {
+        let button = UIButton(frame: CGRect(origin: CGPoint.zero, size: size))
         
         let bundle = Bundle(for: GalleryViewController.self)
         let selectedImage = UIImage(named: "selected_asset", in: bundle, compatibleWith: nil)
@@ -125,8 +125,18 @@ extension UIButton {
         button.setBackgroundImage(selectedImage, for: .selected)
         button.setBackgroundImage(unselectedImage, for: .normal)
         
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 14.0)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: size.width / 3)
         button.setTitleColor(UIColor.white, for: .selected)
+        
+        return button
+    }
+    
+    static func sendButton() -> UIButton {
+        let button = UIButton(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 40, height: 40)))
+        let bundle = Bundle(for: GalleryViewController.self)
+        let image = UIImage(named: "send", in: bundle, compatibleWith: nil)
+        
+        button.setImage(image, for: .normal)
         
         return button
     }

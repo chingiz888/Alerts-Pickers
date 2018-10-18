@@ -12,4 +12,5 @@ public protocol GalleryItemsDelegate: class {
     func isItemSelected(at index: Int) -> Bool
     func itemSelectionIndex(at index: Int) -> Int?
     func removeGalleryItem(at index: Int)
+    func sendItem(_ galleryViewController: GalleryViewController, at index: Int)
 }

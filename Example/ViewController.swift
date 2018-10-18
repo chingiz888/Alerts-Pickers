@@ -410,6 +410,8 @@ class ViewController: UIViewController {
                 switch result {
                 case .photo(let assets):
                     Log(assets)
+                case .photoLibrary:
+                    Log("photo library")
                 case .contact(let contact):
                     Log(contact)
                 case .location(let location):

@@ -5,8 +5,8 @@ import Photos
 public typealias TelegramSelection = (TelegramSelectionType) -> ()
 
 public enum TelegramSelectionType {
-    
     case photo([PHAsset])
+    case photoLibrary
     case location(Location?)
     case contact(Contact?)
     case camera(Camera.PreviewStream)
@@ -490,7 +490,6 @@ final public class TelegramPickerViewController: UIViewController {
         updateVisibleSelectionIndexes()
         
         let scrollAnimated = oldMode == newMode
-        collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: scrollAnimated)
     }
     
     func openPreview(with asset: PHAsset, at indexPath: IndexPath) {
@@ -523,18 +522,14 @@ final public class TelegramPickerViewController: UIViewController {
     }
     
     func updateVisibleSelectionIndexes() {
-        let visibleCells = collectionView.visibleCells.compactMap({ $0 as? CollectionViewCustomContentCell<UIImageView> })
-        for visibleCell in visibleCells {
-            if let indexPath = collectionView.indexPath(for: visibleCell) {
+        let visibleIndexPaths = collectionView.visibleCells.compactMap({ collectionView.indexPath(for: $0) })
+        for indexPath in visibleIndexPaths {
                 let item = items[indexPath.item]
                 switch item {
                 case .photo(let _asset), .video(let _asset):
-                    if let indexForUpdate = selectedAssets.index(of: _asset) {
-                        visibleCell.updateSelectionIndex(indexForUpdate + 1)
-                    }
+                    updateAssetSelection(cell: collectionView.cellForItem(at: indexPath) as? CollectionViewCustomContentCell<UIImageView>, asset: _asset, at: indexPath)
                 default:()
                 }
-            }
         }
     }
     
@@ -580,9 +575,9 @@ final public class TelegramPickerViewController: UIViewController {
             
         case .photoOrVideo:
             let selection = self.selection
-            alertController?.addPhotoLibraryPicker(flow: .vertical, paging: false, selection: .multiple(action: { assets in
-                selection(TelegramSelectionType.photo(assets))
-            }))
+            alertController?.dismiss(animated: true) {
+                selection(.photoLibrary)
+            }
             
         case .photoAsFile:
             let selection = self.selection
@@ -619,7 +614,10 @@ final public class TelegramPickerViewController: UIViewController {
             }
             
         case .file:
-            self.switchToDocumentTypeMenu()
+            let selection = self.selection
+            alertController?.dismiss(animated: true) {
+                selection(.document)
+            }
         }
     }
 }
@@ -707,35 +705,29 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
             guard let photoCell = cell as? CollectionViewPhotoCell else {
                 return
             }
-            
+            photoCell.delegate = self
             let size = sizeForPreviewPreload(asset: asset)
+            updateAssetSelection(cell: photoCell, asset: asset, at: indexPath)
             DispatchQueue.main.async {
                 // We must sure that cell still visible and represents same asset
                 Assets.resolve(asset: asset, size: size) { [weak self] new in
                     self?.updatePhoto(new, asset: asset)
                     photoCell.customContentView.image = new
-                    
-                    if let index = self?.selectedAssets.index(of: asset) {
-                        photoCell.updateSelectionIndex(index + 1)
-                    }
                 }
             }
         case .video(let asset):
             guard let videoCell = cell as? CollectionViewVideoCell else {
                 return
             }
-            
+            videoCell.delegate = self
             let size = sizeForPreviewPreload(asset: asset)
+            updateAssetSelection(cell: videoCell, asset: asset, at: indexPath)
             DispatchQueue.main.async {
                 // We must sure that cell still visible and represents same asset
                 Assets.resolve(asset: asset, size: size) { [weak self] new in
                     self?.updatePhoto(new, asset: asset)
                     videoCell.customContentView.image = new
                     videoCell.updateVideo(duration: asset.duration)
-                    
-                    if let index = self?.selectedAssets.index(of: asset) {
-                        videoCell.updateSelectionIndex(index + 1)
-                    }
                 }
             }
             
@@ -886,6 +878,25 @@ extension TelegramPickerViewController: GalleryItemsDelegate {
         
     }
     
+    public func sendItem(_ galleryViewController: GalleryViewController, at index: Int) {
+        //send current asset if selected array is empty
+        if selectedAssets.isEmpty, let item = galleryItems.item(at: index) {
+            switch item {
+            case .photo(let asset), .video(let asset):
+                selectedAssets.append(asset)
+            default:
+                break
+            }
+        }
+        galleryViewController.closeGallery(true) {
+            let assets = self.selectedAssets
+            let selection = self.selection
+            self.alertController?.dismiss(animated: true) {
+                selection(TelegramSelectionType.photo(assets))
+            }
+        }
+    }
+    
 }
 
 //MARK: - GalleryDisplacedViewsDataSource
@@ -952,4 +963,38 @@ private extension TelegramPickerViewController {
         ]
     }
     
+    func updateAssetSelection<T>(cell: CollectionViewCustomContentCell<T>? = nil, asset: PHAsset, at indexPath: IndexPath) where T: UIView {
+        if selectedAssets.contains(asset) {
+            cell?.updateSelectionIndex(isSelected: true, with: (selectedAssets.index(of: asset) ?? 0) + 1)
+        } else {
+            cell?.updateSelectionIndex(isSelected: false, with: 0)
+        }
+    }
+    
+}
+
+extension TelegramPickerViewController: CollectionViewCustomContentCellDelegate {
+    func collectionViewCustomContentCell<T>(cell: CollectionViewCustomContentCell<T>, didTapOnSelection button: UIButton) where T : UIView {
+        guard let indexPath = collectionView.indexPath(for: cell),
+            let item = items.item(at: indexPath.item) else { return }
+        
+        switch item {
+        case .photo(let asset), .video(let asset):
+            if selectedAssets.contains(asset) {
+                selectedAssets.remove(asset)
+            } else {
+                selectedAssets.append(asset)
+            }
+        default:
+            break
+        }
+        
+        if selectedAssets.count > 0 {
+            applyMode(.bigPhotoPreviews)
+        } else {
+            applyMode(.normal)
+        }
+        
+        updateVisibleSelectionIndexes()
+    }
 }
