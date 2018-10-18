@@ -35,7 +35,7 @@ final public class TelegramPickerViewController: UIViewController {
     var buttons: [ButtonType] {
         switch mode {
         case .normal: return [.photoOrVideo, .file, .location, .contact]
-        case .bigPhotoPreviews: return [.sendPhotos]
+        case .bigPhotoPreviews: return [.sendPhotos, .photoAsFile]
         case .documentType: return [.documentAsFile, .photoAsFile]
         }
     }
@@ -82,7 +82,7 @@ final public class TelegramPickerViewController: UIViewController {
                 return GalleryItem.video(fetchPreviewImageBlock:  { completion in
                     Assets.resolve(asset: asset) { image in
                         completion(image ?? UIImage())
-                        }
+                    }
                 }, videoURL: { completion in
                     Assets.resolveVideo(asset: asset, completion: { (url) in
                         completion(url)
@@ -134,7 +134,7 @@ final public class TelegramPickerViewController: UIViewController {
         case .contact: localizableButton = .contact
         case .sendPhotos: localizableButton = .photos(count: selectedAssets.count)
         case .documentAsFile: localizableButton = .sendDocumentAsFile
-        case .photoAsFile: localizableButton = .sendPhotoAsFile
+        case .photoAsFile: localizableButton = .sendPhotoAsFile(count: selectedAssets.count)
         }
         
         return self.localizer.localized(buttonType: localizableButton)
@@ -193,7 +193,7 @@ final public class TelegramPickerViewController: UIViewController {
             var size = CGSize.init(width: asset.pixelWidth, height: asset.pixelHeight)
             let multiplier = UI.maxHeight / size.height
             size.height *= multiplier
-            size.width = min(minValue, size.width*multiplier)
+            size.width = max(minValue, size.width*multiplier)
             return size
         case .normal:
             let value: CGFloat = UI.maxHeight / UI.multiplier
@@ -294,7 +294,11 @@ final public class TelegramPickerViewController: UIViewController {
     
     public override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        tableView.tableHeaderView?.frame.size.height = preferredTableHeaderHeight
+        
+        if tableView.tableHeaderView?.frame.size.height != preferredTableHeaderHeight {
+            collectionView.frame.size.height = preferredTableHeaderHeight
+            tableView.tableHeaderView = collectionView
+        }
     }
     
     override public func viewDidLayoutSubviews() {
@@ -465,31 +469,8 @@ final public class TelegramPickerViewController: UIViewController {
                 selection(.camera(stream))
             }
         case .photo(let asset), .video(let asset):
-//            action(withAsset: asset, at: indexPath)
             openPreview(with: asset, at: indexPath)
         }
-    }
-    
-    func action(withAsset asset: PHAsset, at indexPath: IndexPath) {
-        guard mode != .documentType else {
-            return
-        }
-        
-        selectedAssets.contains(asset) ? selectedAssets.remove(asset) : selectedAssets.append(asset)
-        
-        let oldMode = mode
-        let newMode: Mode = selectedAssets.isEmpty ? .normal : .bigPhotoPreviews
-        
-        if mode != newMode {
-            applyMode(newMode)
-        } else {
-            updateSendButtonsTitleIfNeeded()
-        }
-        
-        //Reload all visible cells because need to update selection index
-        updateVisibleSelectionIndexes()
-        
-        let scrollAnimated = oldMode == newMode
     }
     
     func openPreview(with asset: PHAsset, at indexPath: IndexPath) {
@@ -517,27 +498,44 @@ final public class TelegramPickerViewController: UIViewController {
                 break
             }
             self?.updateVisibleSelectionIndexes()
+            self?.updateModeIfNeed()
         }
         present(galleryViewController, animated: false, completion: nil)
     }
     
     func updateVisibleSelectionIndexes() {
+        updateSendButtonsTitleIfNeeded()
+        
         let visibleIndexPaths = collectionView.visibleCells.compactMap({ collectionView.indexPath(for: $0) })
         for indexPath in visibleIndexPaths {
-                let item = items[indexPath.item]
-                switch item {
-                case .photo(let _asset), .video(let _asset):
-                    updateAssetSelection(cell: collectionView.cellForItem(at: indexPath) as? CollectionViewCustomContentCell<UIImageView>, asset: _asset, at: indexPath)
-                default:()
-                }
+            let item = items[indexPath.item]
+            switch item {
+            case .photo(let _asset), .video(let _asset):
+                updateAssetSelection(cell: collectionView.cellForItem(at: indexPath) as? CollectionViewCustomContentCell<UIImageView>, asset: _asset, at: indexPath)
+            default:()
+            }
         }
+        //TODO: update numbers of selected items in button
     }
     
     func updateSendButtonsTitleIfNeeded() {
         if let idx = buttons.index(of: .sendPhotos),
             let cell = tableView.cellForRow(at: IndexPath(row: idx, section: 0)) as? LikeButtonCell {
-            let title = self.localizer.localized(buttonType: .photos(count: self.selectedAssets.count))
-            cell.textLabel?.text = title
+            let selectedAssetsTypes = self.selectedAssets.map({ $0.mediaType })
+            var buttonTitle = self.localizer.localized(buttonType: .photos(count: self.selectedAssets.count))
+            if selectedAssetsTypes.contains(.image) && selectedAssetsTypes.contains(.video) {
+                buttonTitle = self.localizer.localized(buttonType: .medias(count: self.selectedAssets.count))
+            } else if selectedAssetsTypes.contains(.image) {
+                buttonTitle = self.localizer.localized(buttonType: .photos(count: self.selectedAssets.count))
+            } else if selectedAssetsTypes.contains(.video) {
+                buttonTitle = self.localizer.localized(buttonType: .videos(count: self.selectedAssets.count))
+            }
+            cell.textLabel?.text = buttonTitle
+        }
+        
+        if let idx = buttons.index(of: .photoAsFile),
+            let cell = tableView.cellForRow(at: IndexPath(row: idx, section: 0)) as? LikeButtonCell {
+            cell.textLabel?.text = self.localizer.localized(buttonType: .sendPhotoAsFile(count: self.selectedAssets.count))
         }
     }
     
@@ -557,7 +555,7 @@ final public class TelegramPickerViewController: UIViewController {
         case .bigPhotoPreviews:
             tableView.reloadData()
         case .normal:
-            tableView.reloadSections([0], with: .fade)
+            tableView.reloadData()
         }
         
         //        collectionView.performBatchUpdates({
@@ -580,10 +578,11 @@ final public class TelegramPickerViewController: UIViewController {
             }
             
         case .photoAsFile:
+            let assets = selectedAssets
             let selection = self.selection
-            alertController?.addPhotoLibraryPicker(flow: .vertical, paging: false, selection: .multiple(action: { assets in
+            alertController?.dismiss(animated: true) {
                 selection(TelegramSelectionType.photosAsDocuments(assets))
-            }))
+            }
             
         case .documentAsFile:
             let selection = self.selection
@@ -971,6 +970,14 @@ private extension TelegramPickerViewController {
         }
     }
     
+    func updateModeIfNeed() {
+        if selectedAssets.count > 0 {
+            applyMode(.bigPhotoPreviews)
+        } else {
+            applyMode(.normal)
+        }
+    }
+    
 }
 
 extension TelegramPickerViewController: CollectionViewCustomContentCellDelegate {
@@ -989,11 +996,9 @@ extension TelegramPickerViewController: CollectionViewCustomContentCellDelegate 
             break
         }
         
-        if selectedAssets.count > 0 {
-            applyMode(.bigPhotoPreviews)
-        } else {
-            applyMode(.normal)
-        }
+        updateModeIfNeed()
+        
+        //TODO: Make scroll to selected view and thier NEW index path
         
         updateVisibleSelectionIndexes()
     }

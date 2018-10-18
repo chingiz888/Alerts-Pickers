@@ -2,7 +2,15 @@ import Foundation
 import UIKit
 import AVFoundation
 
-public typealias CollectionViewCameraCell = CollectionViewCustomContentCell<CameraView>
+public class CollectionViewCameraCell: CollectionViewCustomContentCell<CameraView> {
+    
+    public override func setup() {
+        super.setup()
+        
+        selectionElement.isHidden = true
+    }
+    
+}
 
 public final class CameraView: UIView {
     
