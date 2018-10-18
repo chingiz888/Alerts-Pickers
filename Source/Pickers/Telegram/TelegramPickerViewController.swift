@@ -498,7 +498,7 @@ final public class TelegramPickerViewController: UIViewController {
                 break
             }
             self?.updateVisibleSelectionIndexes()
-            self?.updateModeIfNeed()
+            self?.updateModeIfNeed(from: indexPath)
         }
         present(galleryViewController, animated: false, completion: nil)
     }
@@ -539,7 +539,7 @@ final public class TelegramPickerViewController: UIViewController {
         }
     }
     
-    func applyMode(_ newMode: Mode) {
+    func applyMode(_ newMode: Mode, collectionIndexPath: IndexPath? = nil) {
         
         guard newMode != self.mode else {
             return
@@ -549,19 +549,17 @@ final public class TelegramPickerViewController: UIViewController {
         
         collectionView.isHidden = newMode == .documentType
         
-        switch mode {
-        case .documentType:
-            tableView.reloadData()
-        case .bigPhotoPreviews:
-            tableView.reloadData()
-        case .normal:
-            tableView.reloadData()
-        }
-        
-        //        collectionView.performBatchUpdates({
-        self.layout.mode = (newMode == .normal) ? .normal : .hidingFirstItem
-        //        })
-        
+        collectionView.performBatchUpdates({
+            switch mode {
+            case .documentType:
+                tableView.reloadData()
+            case .bigPhotoPreviews:
+                tableView.reloadData()
+            case .normal:
+                tableView.reloadData()
+            }
+            self.layout.mode = (newMode == .normal) ? .normal : .hidingFirstItem
+        })
     }
     
     func switchToDocumentTypeMenu() {
@@ -626,14 +624,6 @@ final public class TelegramPickerViewController: UIViewController {
 extension TelegramPickerViewController: UICollectionViewDelegate {
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if isSelectableItem(at: indexPath, collectionView: collectionView) {
-            layout.selectedCellIndexPath = indexPath
-        }
-        action(withItem: items[indexPath.item], at: indexPath)
-    }
-    
-    public func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
-        layout.selectedCellIndexPath = nil
         action(withItem: items[indexPath.item], at: indexPath)
     }
     
@@ -759,7 +749,7 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
     }
     
     private func updateVisibleAreaRect(cell: UICollectionViewCell, indexPath: IndexPath) {
-        guard let cell = cell as? CollectionViewPhotoCell else {
+        guard let cell = cell as? CollectionViewCustomContentCell<UIImageView> else {
             return
         }
         
@@ -970,11 +960,14 @@ private extension TelegramPickerViewController {
         }
     }
     
-    func updateModeIfNeed() {
+    func updateModeIfNeed(from indexPath: IndexPath) {
+        if isSelectableItem(at: indexPath, collectionView: collectionView) {
+            layout.selectedCellIndexPath = indexPath
+        }
         if selectedAssets.count > 0 {
-            applyMode(.bigPhotoPreviews)
+            applyMode(.bigPhotoPreviews, collectionIndexPath: indexPath)
         } else {
-            applyMode(.normal)
+            applyMode(.normal, collectionIndexPath: indexPath)
         }
     }
     
@@ -996,7 +989,7 @@ extension TelegramPickerViewController: CollectionViewCustomContentCellDelegate 
             break
         }
         
-        updateModeIfNeed()
+        updateModeIfNeed(from: indexPath)
         
         //TODO: Make scroll to selected view and thier NEW index path
         
