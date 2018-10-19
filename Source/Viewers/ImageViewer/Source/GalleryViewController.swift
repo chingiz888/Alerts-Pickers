@@ -59,6 +59,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     fileprivate let swipeToDismissFadeOutAccelerationFactor: CGFloat = 6
     fileprivate var decorationViewsFadeDuration = 0.15
     fileprivate var marginsBottom: CGFloat = 15.0
+    fileprivate var toggleDecorationViewBySingleTap: Bool = false
     
     /// COMPLETION BLOCKS
     /// If set, the block is executed right after the initial launch animations finish.
@@ -90,6 +91,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
             switch item {
                 
             case .imageDividerWidth(let width):                 spineDividerWidth = Float(width)
+            case .toggleDecorationViewsBySingleTap(let isToogle):toggleDecorationViewBySingleTap = isToogle
             case .pagingMode(let mode):                         galleryPagingMode = mode
             case .headerViewLayout(let layout):                 headerLayout = layout
             case .footerViewLayout(let layout):                 footerLayout = layout
@@ -719,9 +721,14 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     }
     
     open func itemControllerDidSingleTap(_ controller: ItemController) {
-        
-        self.decorationViewsHidden.flip()
-        animateDecorationViews(visible: !self.decorationViewsHidden)
+        if toggleDecorationViewBySingleTap {
+            self.decorationViewsHidden.flip()
+            animateDecorationViews(visible: !self.decorationViewsHidden)
+        }
+
+        if let selectionButton = selectionButton {
+            selectionCompletion?(selectionButton)
+        }
     }
     
     open func itemControllerDidLongPress(_ controller: ItemController, in item: ItemView) {
