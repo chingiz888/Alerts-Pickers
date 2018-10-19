@@ -21,6 +21,8 @@ open class VideoScrubber: UIControl {
     var duration: TimeInterval?
     fileprivate var periodicObserver: AnyObject?
     fileprivate var stoppedSlidingTimeStamp = Date()
+    
+    private let marginsRight: CGFloat = 16.0
 
     weak var player: AVPlayer? {
 
@@ -116,7 +118,7 @@ open class VideoScrubber: UIControl {
         scrubber.addTarget(self, action: #selector(updateCurrentTime), for: UIControlEvents.valueChanged)
         scrubber.addTarget(self, action: #selector(seekToTime), for: [UIControlEvents.touchUpInside, UIControlEvents.touchUpOutside])
 
-        self.addSubviews(playButton, pauseButton, replayButton, scrubber, timeLabel)
+        self.addSubviews(playButton, pauseButton, replayButton, scrubber, timeLabel, sendButton)
 
         scrubber.addObserver(self, forKeyPath: "isSliding", options: NSKeyValueObservingOptions.new, context: nil)
     }
@@ -131,6 +133,8 @@ open class VideoScrubber: UIControl {
 
         timeLabel.center = self.boundsCenter
         timeLabel.frame.origin.x = self.bounds.maxX - timeLabel.bounds.width - sendButton.bounds.width * 1.5
+        
+        sendButton.frame.origin.x = self.bounds.maxX - sendButton.bounds.width - marginsRight
 
         scrubber.bounds.size.width = self.bounds.width - playButton.bounds.width - timeLabel.bounds.width - sendButton.bounds.width * 1.5
         scrubber.bounds.size.height = 20

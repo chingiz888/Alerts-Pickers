@@ -678,8 +678,10 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     public func itemControllerWillAppear(_ controller: ItemController) {
         
         if let videoController = controller as? VideoViewController {
-            
+            sendButton?.isHidden = true
             scrubber.player = videoController.player
+        } else {
+            sendButton?.isHidden = false
         }
     }
     
@@ -767,5 +769,9 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
         self.swipedToDismissCompletion?()
         self.overlayView.removeFromSuperview()
         self.dismiss(animated: false, completion: nil)
+    }
+    
+    public func itemControllerDidSendTap(_ controller: ItemController) {
+        itemsDelegate?.sendItem(self, at: currentIndex)
     }
 }

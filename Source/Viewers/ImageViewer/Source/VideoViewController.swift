@@ -58,6 +58,7 @@ class VideoViewController: ItemBaseController<VideoView> {
             welf.player?.addObserver(welf, forKeyPath: "status", options: NSKeyValueObservingOptions.new, context: nil)
             welf.player?.addObserver(welf, forKeyPath: "rate", options: NSKeyValueObservingOptions.new, context: nil)
             welf.isObservePlayer = true
+            welf.scrubber.player = welf.player
             
             if welf.itemView.player == nil {
                 welf.itemView.player = welf.player
@@ -78,6 +79,7 @@ class VideoViewController: ItemBaseController<VideoView> {
 
         self.itemView.player = player
         self.itemView.contentMode = .scaleAspectFill
+        self.scrubber.sendButton.addTarget(self, action: #selector(sendVideo(sender:)), for: .touchUpInside)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -128,6 +130,10 @@ class VideoViewController: ItemBaseController<VideoView> {
 
             self?.embeddedPlayButton.isHidden = true
         })
+    }
+    
+    @objc func sendVideo(sender: UIButton) {
+        delegate?.itemControllerDidSendTap(self)
     }
 
     override func closeDecorationViews(_ duration: TimeInterval) {
