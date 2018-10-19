@@ -74,7 +74,7 @@ public final class Camera {
                 
                 session.beginConfiguration()
                 
-                session.setPresetsAlertnately([.low, .medium])
+                session.setPresetsAlertnately([.high])
                 guard let device = createDevice() else {
                     completionHandler(.error(error: StreamError.deviceUnsupported))
                     return
