@@ -55,6 +55,8 @@
 		F27C7E5521771E5300266414 /* VideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F27C7E2D21771E5300266414 /* VideoViewController.swift */; };
 		F27C7E5621771E5300266414 /* GalleryPagingDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F27C7E2E21771E5300266414 /* GalleryPagingDataSource.swift */; };
 		F27C7E5721771E5300266414 /* ImageFadeInHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = F27C7E2F21771E5300266414 /* ImageFadeInHandler.swift */; };
+		F28F1C422179EE04000F866F /* PickerStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F1C412179EE04000F866F /* PickerStyle.swift */; };
+		F28F1C442179EFF7000F866F /* PickerCustomizableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28F1C432179EFF7000F866F /* PickerCustomizableButton.swift */; };
 		FA005E922015D769001EA8C6 /* Contacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA005E912015D769001EA8C6 /* Contacts.swift */; };
 		FA005E942015E490001EA8C6 /* UISearchBar+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA005E932015E490001EA8C6 /* UISearchBar+Extensions.swift */; };
 		FA005E9620162BB5001EA8C6 /* Assets.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA005E9520162BB5001EA8C6 /* Assets.swift */; };
@@ -168,6 +170,8 @@
 		F27C7E2D21771E5300266414 /* VideoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoViewController.swift; sourceTree = "<group>"; };
 		F27C7E2E21771E5300266414 /* GalleryPagingDataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GalleryPagingDataSource.swift; sourceTree = "<group>"; };
 		F27C7E2F21771E5300266414 /* ImageFadeInHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageFadeInHandler.swift; sourceTree = "<group>"; };
+		F28F1C412179EE04000F866F /* PickerStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerStyle.swift; sourceTree = "<group>"; };
+		F28F1C432179EFF7000F866F /* PickerCustomizableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerCustomizableButton.swift; sourceTree = "<group>"; };
 		FA005E912015D769001EA8C6 /* Contacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contacts.swift; sourceTree = "<group>"; };
 		FA005E932015E490001EA8C6 /* UISearchBar+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UISearchBar+Extensions.swift"; sourceTree = "<group>"; };
 		FA005E9520162BB5001EA8C6 /* Assets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Assets.swift; sourceTree = "<group>"; };
@@ -319,6 +323,7 @@
 				F27C7E2321771E5300266414 /* UIScreen.swift */,
 				F27C7E2421771E5300266414 /* UISlider.swift */,
 				F27C7E2521771E5300266414 /* CAShapeLayer.swift */,
+				F28F1C432179EFF7000F866F /* PickerCustomizableButton.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -369,6 +374,7 @@
 				FA3BB2902008B46500E06F8F /* Label.swift */,
 				FA3BB2912008B46500E06F8F /* SegmentedControl.swift */,
 				FA3BB2922008B46500E06F8F /* TextField.swift */,
+				F28F1C412179EE04000F866F /* PickerStyle.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -797,6 +803,7 @@
 				FA3BB2BB2008B46900E06F8F /* Optional+Extensions.swift in Sources */,
 				F27C7E3B21771E5300266414 /* ThumbnailCell.swift in Sources */,
 				F27C7E3621771E5300266414 /* ItemController.swift in Sources */,
+				F28F1C442179EFF7000F866F /* PickerCustomizableButton.swift in Sources */,
 				FABFAA68200C963F00961895 /* ColorPickerViewController.swift in Sources */,
 				F27C7E4121771E5300266414 /* CGSize.swift in Sources */,
 				FA3BB2B12008B46800E06F8F /* TextField.swift in Sources */,
@@ -818,6 +825,7 @@
 				FAAB5C89201BCA6700CCE04D /* CurrencyCell.swift in Sources */,
 				FA3BB2C52008B46900E06F8F /* OneTextFieldViewController.swift in Sources */,
 				FA3BB2BE2008B46900E06F8F /* UITextField+Extensions.swift in Sources */,
+				F28F1C422179EE04000F866F /* PickerStyle.swift in Sources */,
 				F27C7E3421771E5300266414 /* UtilityFunctions.swift in Sources */,
 				FA3BB2B62008B46800E06F8F /* String+Extensions.swift in Sources */,
 				FAAB5C83201BC16500CCE04D /* LocaleInfo.swift in Sources */,

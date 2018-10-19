@@ -90,10 +90,13 @@ extension UIButton {
         return button
     }
 
-    static func closeButton() -> UIButton {
-
+    static func closeButton(size: CGSize = CGSize(width: 40, height: 40)) -> UIButton {
+        
         let button = UIButton(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 50, height: 50)))
-        button.setImage(CAShapeLayer.closeShape(edgeLength: 15).toImage(), for: .normal)
+
+        let bundle = Bundle(for: GalleryViewController.self)
+        let closeImage = UIImage(named: "close", in: bundle, compatibleWith: nil)
+        button.setImage(closeImage, for: .normal)
 
         return button
     }
@@ -116,16 +119,18 @@ extension UIButton {
     }
     
     static func selectionButton(size: CGSize = CGSize(width: 40, height: 40)) -> UIButton {
-        let button = UIButton(frame: CGRect(origin: CGPoint.zero, size: size))
+        let button = PickerCustomizableButton(frame: CGRect(origin: CGPoint.zero, size: size))
         
         let bundle = Bundle(for: GalleryViewController.self)
-        let selectedImage = UIImage(named: "selected_asset", in: bundle, compatibleWith: nil)
         let unselectedImage = UIImage(named: "unselected_asset", in: bundle, compatibleWith: nil)
         
-        button.setBackgroundImage(selectedImage, for: .selected)
+        button.setBackgroundColor(PickerStyle.shared.selectionButtonTintColor, state: .selected)
+        button.layer.cornerRadius = button.bounds.size.width / 2
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.white.cgColor
         button.setBackgroundImage(unselectedImage, for: .normal)
         
-        button.titleLabel?.font = UIFont.systemFont(ofSize: size.width / 3)
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: size.width / 2)
         button.setTitleColor(UIColor.white, for: .selected)
         
         return button
@@ -134,9 +139,12 @@ extension UIButton {
     static func sendButton() -> UIButton {
         let button = UIButton(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 40, height: 40)))
         let bundle = Bundle(for: GalleryViewController.self)
-        let image = UIImage(named: "send", in: bundle, compatibleWith: nil)
-        
+    
+        let image = UIImage(named: "arrow", in: bundle, compatibleWith: nil)
         button.setImage(image, for: .normal)
+        
+        button.backgroundColor = PickerStyle.shared.sendButtonBackgroundColor
+        button.layer.cornerRadius = button.bounds.size.width / 2
         
         return button
     }
