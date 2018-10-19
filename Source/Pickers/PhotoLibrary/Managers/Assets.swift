@@ -57,33 +57,38 @@ public struct Assets {
     }
     
     public static func resolve(asset: PHAsset, size: CGSize = PHImageManagerMaximumSize, completion: @escaping (_ image: UIImage?) -> Void) {
-        let imageManager = PHImageManager.default()
-        
-        let requestOptions = PHImageRequestOptions()
-        requestOptions.deliveryMode = .highQualityFormat
-        requestOptions.resizeMode = .exact
-        requestOptions.isNetworkAccessAllowed = true
-        
-        imageManager.requestImage(for: asset, targetSize: size, contentMode: .aspectFill, options: requestOptions) { image, info in
-            DispatchQueue.main.async {
-                completion(image)
+        DispatchQueue.global(qos: .userInitiated).async {
+            let imageManager = PHImageManager.default()
+            
+            let requestOptions = PHImageRequestOptions()
+            requestOptions.deliveryMode = .highQualityFormat
+            requestOptions.resizeMode = .exact
+            requestOptions.isNetworkAccessAllowed = true
+            
+            imageManager.requestImage(for: asset, targetSize: size, contentMode: .aspectFill, options: requestOptions) { image, info in
+                DispatchQueue.main.async {
+                    completion(image)
+                }
             }
         }
     }
     
     public static func resolveVideo(asset: PHAsset, size: CGSize = PHImageManagerMaximumSize, completion: @escaping (_ image: URL?) -> Void) {
-        let imageManager = PHImageManager.default()
-        
-        let options: PHVideoRequestOptions = PHVideoRequestOptions()
-        options.version = .original
-        options.isNetworkAccessAllowed = true
-        
-        imageManager.requestAVAsset(forVideo: asset, options: options) { (asset, audioMix, info) in
-            DispatchQueue.main.async {
-                if let urlAsset = asset as? AVURLAsset {
-                    completion(urlAsset.url)
-                } else {
-                    completion(nil)
+        DispatchQueue.global(qos: .userInitiated).async {
+            
+            let imageManager = PHImageManager.default()
+            
+            let options: PHVideoRequestOptions = PHVideoRequestOptions()
+            options.version = .original
+            options.isNetworkAccessAllowed = true
+            
+            imageManager.requestAVAsset(forVideo: asset, options: options) { (asset, audioMix, info) in
+                DispatchQueue.main.async {
+                    if let urlAsset = asset as? AVURLAsset {
+                        completion(urlAsset.url)
+                    } else {
+                        completion(nil)
+                    }
                 }
             }
         }
