@@ -19,6 +19,7 @@ public enum LocalizableButtonType {
     case medias(count: Int)
     case sendDocumentAsFile
     case sendPhotoAsFile(count: Int)
+    case addContact
 }
 
 public enum Failure {

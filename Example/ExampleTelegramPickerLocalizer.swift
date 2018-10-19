@@ -14,6 +14,7 @@ public struct ExampleTelegramPickerLocalizer: TelegramPickerResourceProvider {
         case .medias(count: let count): return "Send \(count) \(count == 1 ? "Media" : "Medias")"
         case .sendDocumentAsFile: return "Document"
         case .sendPhotoAsFile(count: let count): return "Send as \(count == 1 ? "File" : "Files")"
+        case .addContact: return "Add Contact"
         }
     }
     

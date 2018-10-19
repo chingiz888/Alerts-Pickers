@@ -8,11 +8,11 @@ extension UIAlertController {
     /// - Parameters:
     ///   - selection: action for selection of contact
     
-    public func addContactsPicker(selection: @escaping ContactsPickerViewController.Selection) {
+    public func addContactsPicker(localizer: TelegramPickerResourceProvider? = nil, selection: @escaping ContactsPickerViewController.Selection) {
         let selection: ContactsPickerViewController.Selection = selection
         var contact: Contact?
         
-        let addContact = UIAlertAction(title: "Add Contact", style: .default) { action in
+        let addContact = UIAlertAction(title: localizer?.localized(buttonType: .addContact) ?? "Add Contact", style: .default) { action in
             selection(contact)
         }
         addContact.isEnabled = false

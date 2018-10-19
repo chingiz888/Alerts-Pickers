@@ -599,7 +599,7 @@ final public class TelegramPickerViewController: UIViewController {
             
         case .contact:
             let selection = self.selection
-            alertController?.addContactsPicker { contact in
+            alertController?.addContactsPicker(localizer: localizer) { contact in
                 selection(TelegramSelectionType.contact(contact))
             }
             
