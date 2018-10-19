@@ -14,8 +14,8 @@ public class PickerStyle {
     
     //MARK: Public Properties
     
-    var sendButtonBackgroundColor: UIColor = UIColor.blue
+    public var sendButtonBackgroundColor: UIColor = UIColor.blue
     
-    var selectionButtonTintColor: UIColor = UIColor.blue
+    public var selectionButtonTintColor: UIColor = UIColor.blue
     
 }
