@@ -32,13 +32,20 @@ public final class CameraView: UIView {
             oldValue?.removeFromSuperlayer()
             
             if let newLayer = videoLayer {
-                self.layer.addSublayer(newLayer)
+                self.layer.insertSublayer(newLayer, below: cameraIconImageView.layer)
             }
         }
     }
     
+    private lazy var cameraIconImageView: UIImageView = {
+        let bundle = Bundle(for: CollectionViewCameraCell.self)
+        let cameraIcon = UIImage(named: "camera_icon", in: bundle, compatibleWith: nil)
+        return UIImageView(image: cameraIcon)
+    }()
+    
     private func setup() {
         self.videoLayer = nil
+        self.layer.backgroundColor = UIColor.black.cgColor
         
         if let stream = self.representedStream {
             stream.queue.async {
@@ -49,12 +56,20 @@ public final class CameraView: UIView {
                 }
             }
         }
+        
+        if subviews.contains(cameraIconImageView) == false {
+            addSubview(cameraIconImageView)
+        }
     }
     
     public override func layoutSubviews() {
         super.layoutSubviews()
         
-        videoLayer?.frame = self.bounds
+        if videoLayer?.frame != self.bounds {
+            videoLayer?.frame = self.bounds
+        }
+        
+        cameraIconImageView.center = CGPoint(x: bounds.width/2, y: bounds.height/2)
     }
     
     public func reset() {
