@@ -25,6 +25,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     fileprivate var deleteButton: UIButton? = nil
     fileprivate var sendButton: UIButton? = UIButton.sendButton()
     fileprivate let scrubber = VideoScrubber()
+    fileprivate let scrubberBackgroundView = UIVisualEffectView.init(effect: UIBlurEffect.init(style: .dark))
     
     fileprivate weak var initialItemController: ItemController?
     
@@ -37,7 +38,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     fileprivate var initialPresentationDone = false
     
     // DATASOURCE/DELEGATE
-    fileprivate let itemsDelegate: GalleryItemsDelegate?
+    fileprivate weak var itemsDelegate: GalleryItemsDelegate?
     fileprivate let itemsDataSource: GalleryItemsDataSource
     fileprivate let pagingDataSource: GalleryPagingDataSource
     
@@ -59,6 +60,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     fileprivate let swipeToDismissFadeOutAccelerationFactor: CGFloat = 6
     fileprivate var decorationViewsFadeDuration = 0.15
     fileprivate var marginsBottom: CGFloat = 15.0
+    fileprivate var marginsTop: CGFloat = 8.0
     fileprivate var toggleDecorationViewBySingleTap: Bool = false
     
     /// COMPLETION BLOCKS
@@ -276,6 +278,8 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     fileprivate func configureScrubber() {
         
         scrubber.alpha = 0
+        
+        self.view.addSubview(scrubberBackgroundView)
         self.view.addSubview(scrubber)
     }
     
@@ -459,6 +463,10 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     }
     
     fileprivate func layoutScrubber() {
+        
+        scrubberBackgroundView.bounds = CGRect(origin: CGPoint.zero, size: CGSize(width: self.view.bounds.width, height: 40 + marginsBottom + marginsTop))
+        scrubberBackgroundView.center = self.view.boundsCenter
+        scrubberBackgroundView.frame.origin.y = (footerView?.frame.origin.y ?? self.view.bounds.maxY) - scrubber.bounds.height - marginsBottom - marginsTop
         
         scrubber.bounds = CGRect(origin: CGPoint.zero, size: CGSize(width: self.view.bounds.width, height: 40))
         scrubber.center = self.view.boundsCenter

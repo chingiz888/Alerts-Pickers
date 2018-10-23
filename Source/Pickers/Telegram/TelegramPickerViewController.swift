@@ -71,7 +71,7 @@ final public class TelegramPickerViewController: UIViewController {
             }
         }
         
-        var galaryItem: GalleryItem? {
+        var galleryItem: GalleryItem? {
             switch self {
             case .photo(let asset):
                 return GalleryItem.image(fetchImageBlock: { completion in
@@ -183,7 +183,15 @@ final public class TelegramPickerViewController: UIViewController {
     func sizeForPreviewPreload(asset: PHAsset) -> CGSize {
         let height: CGFloat = UI.maxHeight
         let width: CGFloat = CGFloat(Double(height) * Double(asset.pixelWidth) / Double(asset.pixelHeight))
-        return CGSize(width: width, height: height)
+        
+        let imageSize = CGSize(width: width, height: height)
+        let previewSize = UIScreen.main.bounds.size
+        
+        let scale = max(previewSize.width / imageSize.width, previewSize.height / imageSize.height)
+        
+        let targetSize = CGSize(width: imageSize.width * scale, height: imageSize.height * scale)
+        
+        return targetSize
     }
     
     func sizeForAsset(asset: PHAsset) -> CGSize {
@@ -468,15 +476,21 @@ final public class TelegramPickerViewController: UIViewController {
             if let stream = cameraStream {
                 selection(.camera(stream))
             }
-        case .photo(let asset), .video(let asset):
-            openPreview(with: asset, at: indexPath)
+        case .photo(let asset):
+            collectionView.deselectItem(at: indexPath, animated: false)
+            self.openPreview(with: asset, at: indexPath)
+            
+        case .video(let asset):
+            collectionView.deselectItem(at: indexPath, animated: false)
+            self.openPreview(with: asset, at: indexPath)
         }
     }
     
     func openPreview(with asset: PHAsset, at indexPath: IndexPath) {
+        
         let galleryItemIndex = galleryItems.index(of: items[indexPath.item]) ?? 0
         let galleryViewController = GalleryViewController(startIndex: galleryItemIndex,
-                                                          itemsDataSource: self,
+                                                          itemsDataSource: createGalleryItemsDataSource(),
                                                           itemsDelegate: self,
                                                           displacedViewsDataSource: self,
                                                           configuration: galleryConfiguration())
@@ -515,7 +529,6 @@ final public class TelegramPickerViewController: UIViewController {
             default:()
             }
         }
-        //TODO: update numbers of selected items in button
     }
     
     func updateSendButtonsTitleIfNeeded() {
@@ -819,20 +832,6 @@ extension TelegramPickerViewController: UITableViewDataSource {
         cell.textLabel?.text = title(for: buttons[indexPath.row])
         return cell
     }
-}
-
-//MARK: - GalleryItemsDataSource
-
-extension TelegramPickerViewController: GalleryItemsDataSource {
-    
-    public func itemCount() -> Int {
-        return galleryItems.count
-    }
-    
-    public func provideGalleryItem(_ index: Int) -> GalleryItem {
-        return galleryItems[index].galaryItem ?? GalleryItem.image(fetchImageBlock: { $0(UIImage()) })
-    }
-    
 }
 
 //MARK: - GalleryItemsDelegate
