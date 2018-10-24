@@ -22,7 +22,35 @@ public struct Assets {
         case error(error: Error)
     }
     
+    public enum OriginalFetchResults {
+        case success(result: PHFetchResult<PHAsset>)
+        case error(error: Error)
+    }
+    
+    
+    public static func fetchOriginal(_ completion: @escaping (OriginalFetchResults)-> Void ) {
+        
+        guard PHPhotoLibrary.authorizationStatus() == .authorized else {
+            let error: NSError = NSError(domain: "PhotoLibrary Error", code: 1, userInfo: [NSLocalizedDescriptionKey: "No PhotoLibrary Access"])
+            completion(OriginalFetchResults.error(error: error))
+            return
+        }
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            
+            let fetchOptions = PHFetchOptions()
+            fetchOptions.sortDescriptors = [NSSortDescriptor(key:"creationDate", ascending: false)]
+            let fetchResult = PHAsset.fetchAssets(with: fetchOptions)
+            
+            DispatchQueue.main.async {
+                completion(.success(result: fetchResult))
+            }
+        }
+        
+    }
+    
     public static func fetch(_ completion: @escaping (FetchResults) -> Void) {
+        
         guard PHPhotoLibrary.authorizationStatus() == .authorized else {
             let error: NSError = NSError(domain: "PhotoLibrary Error", code: 1, userInfo: [NSLocalizedDescriptionKey: "No PhotoLibrary Access"])
             completion(FetchResults.error(error: error))
@@ -34,11 +62,10 @@ public struct Assets {
             fetchOptions.sortDescriptors = [NSSortDescriptor(key:"creationDate", ascending: true)]
             let fetchResult = PHAsset.fetchAssets(with: fetchOptions)
             
+            // MARK: Is it ok we don't call completion if there is no photo in library?
             if fetchResult.count > 0 {
-                var assets = [PHAsset]()
-                fetchResult.enumerateObjects { object, _, _ in
-                    assets.insert(object, at: 0)
-                }
+                
+                let assets = fetchResult.dlg_assets
                 
                 DispatchQueue.main.async {
                     completion(FetchResults.success(response: assets))

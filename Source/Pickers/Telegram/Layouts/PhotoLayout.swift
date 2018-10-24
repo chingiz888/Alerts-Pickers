@@ -41,6 +41,19 @@ class PhotoLayout: UICollectionViewLayout {
             return centerPoint
         }
         
+        override func copy() -> Any {
+            let copy = super.copy() as! PhotoLayout.Attributes
+            copy.selectionSize = self.selectionSize
+            copy.selectionInset = self.selectionInset
+            copy.selectionBorderWidth = self.selectionBorderWidth
+            copy.visibleArea = self.visibleArea
+            return copy
+        }
+        
+        var duplicate: PhotoLayout.Attributes {
+            return copy() as! PhotoLayout.Attributes
+        }
+        
     }
     
     weak var delegate: PhotoLayoutDelegate!
@@ -61,6 +74,9 @@ class PhotoLayout: UICollectionViewLayout {
     fileprivate var contentSize: CGSize = .zero
     public var selectedCellIndexPath: IndexPath?
     
+    private var insertingIndexPaths: [IndexPath] = []
+    private var removalIndexPaths: [IndexPath] = []
+    
     override var collectionViewContentSize: CGSize {
         return contentSize
     }
@@ -71,6 +87,14 @@ class PhotoLayout: UICollectionViewLayout {
     
     public var proposedItemHeight: CGFloat {
         return collectionView.bounds.height - (inset.top + inset.bottom)
+    }
+    
+    public func prepareForInsertion(_ indexPaths: [IndexPath]) {
+        self.insertingIndexPaths = indexPaths
+    }
+    
+    public func prepareForRemoval(_ indexPaths: [IndexPath]) {
+        self.removalIndexPaths = indexPaths
     }
     
     private var inset: UIEdgeInsets {
@@ -129,9 +153,26 @@ class PhotoLayout: UICollectionViewLayout {
         contentSize.height = height
     }
     
+    override func finalizeCollectionViewUpdates() {
+        super.finalizeCollectionViewUpdates()
+        
+        insertingIndexPaths = []
+        removalIndexPaths = []
+    }
+    
     override func initialLayoutAttributesForAppearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
-        print("Will appear \(itemIndexPath.item) from \(previousAttributes[itemIndexPath.item]) to \(currentAttributes[itemIndexPath.item])")
+        if insertingIndexPaths.contains(itemIndexPath) {
+            return attributesForInsertionItem(at: itemIndexPath)
+        }
         return previousAttributes[itemIndexPath.item]
+    }
+    
+    private func attributesForInsertionItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        let attributes = currentAttributes[indexPath.item].duplicate
+        attributes.alpha = 0.0
+        attributes.transform = CGAffineTransform.init(scaleX: 0.1, y: 0.1)
+        attributes.frame.origin.y -= self.collectionView.bounds.size.height
+        return attributes
     }
     
     override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
@@ -139,7 +180,13 @@ class PhotoLayout: UICollectionViewLayout {
     }
     
     override func finalLayoutAttributesForDisappearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
-        print("Will disappear \(itemIndexPath.item) from \(currentAttributes[itemIndexPath.item]) to \(currentAttributes[itemIndexPath.item])")
+        if removalIndexPaths.contains(itemIndexPath) {
+            let attributes = currentAttributes[itemIndexPath.item].duplicate
+            attributes.alpha = 0.0
+            attributes.transform = CGAffineTransform.init(scaleX: 0.1, y: 0.1)
+            attributes.frame.origin.y -= self.collectionView.bounds.size.height
+            return attributes
+        }
         return layoutAttributesForItem(at: itemIndexPath)
     }
     
@@ -153,7 +200,6 @@ class PhotoLayout: UICollectionViewLayout {
     
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
         guard let selectedCellIndexPath = selectedCellIndexPath else {
-            print("Has no selected item. Return proposed offset \(proposedContentOffset)")
             return proposedContentOffset
         }
         
@@ -176,8 +222,6 @@ class PhotoLayout: UICollectionViewLayout {
             Log(finalContentOffset)
         }
         
-        print("Has selected item. Offset: \(finalContentOffset)")
-
         return finalContentOffset
     }
     

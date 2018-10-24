@@ -32,13 +32,7 @@ extension UIImageView: DisplaceableView {}
 
 final public class TelegramPickerViewController: UIViewController {
     
-    var buttons: [ButtonType] {
-        switch mode {
-        case .normal: return [.photoOrVideo, .file, .location, .contact]
-        case .bigPhotoPreviews: return [.sendPhotos, .photoAsFile]
-        case .documentType: return [.documentAsFile, .photoAsFile]
-        }
-    }
+    // MARK: - Nested
     
     enum ButtonType {
         case photoOrVideo
@@ -51,6 +45,7 @@ final public class TelegramPickerViewController: UIViewController {
     }
     
     enum StreamItem: Equatable {
+        
         case photo(PHAsset)
         case video(PHAsset)
         case camera
@@ -68,6 +63,14 @@ final public class TelegramPickerViewController: UIViewController {
             case (let .video(lhsAsset), let .video(rhsAsset)): return lhsAsset == rhsAsset
             case (.camera, .camera): return true
             default: return false
+            }
+        }
+        
+        init?(asset: PHAsset) {
+            switch asset.mediaType {
+            case .video: self = .video(asset)
+            case .image: self = .photo(asset)
+            default: return nil
             }
         }
         
@@ -106,8 +109,6 @@ final public class TelegramPickerViewController: UIViewController {
         case documentType
     }
     
-    // MARK: UI
-    
     struct UI {
         static let rowHeight: CGFloat = 58
         static let insets: UIEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
@@ -117,33 +118,22 @@ final public class TelegramPickerViewController: UIViewController {
         static let multiplier: CGFloat = 2
     }
     
+    // MARK: - Vars
+    
     fileprivate var mode = Mode.normal
+    
+    let assetsCollection = AssetsCollection.init()
+    
+    var buttons: [ButtonType] {
+        switch mode {
+        case .normal: return [.photoOrVideo, .file, .location, .contact]
+        case .bigPhotoPreviews: return [.sendPhotos, .photoAsFile]
+        case .documentType: return [.documentAsFile, .photoAsFile]
+        }
+    }
     
     private var photoLayout: PhotoLayout {
         return collectionView.collectionViewLayout as! PhotoLayout
-    }
-    
-    func title(for button: ButtonType) -> String {
-        
-        let localizableButton: LocalizableButtonType
-        
-        switch button {
-        case .photoOrVideo: localizableButton = .photoOrVideo
-        case .file: localizableButton = .file
-        case .location: localizableButton = .location
-        case .contact: localizableButton = .contact
-        case .sendPhotos: localizableButton = .photos(count: selectedAssets.count)
-        case .documentAsFile: localizableButton = .sendDocumentAsFile
-        case .photoAsFile: localizableButton = .sendPhotoAsFile(count: selectedAssets.count)
-        }
-        
-        return self.localizer.localized(buttonType: localizableButton)
-    }
-    
-    func font(for button: ButtonType) -> UIFont {
-        switch button {
-        case .sendPhotos: return UIFont.boldSystemFont(ofSize: 20)
-        default: return UIFont.systemFont(ofSize: 20) }
     }
     
     var preferredTableHeaderHeight: CGFloat {
@@ -180,47 +170,6 @@ final public class TelegramPickerViewController: UIViewController {
         return entries
     }
     
-    func sizeForPreviewPreload(asset: PHAsset) -> CGSize {
-        let height: CGFloat = UI.maxHeight
-        let width: CGFloat = CGFloat(Double(height) * Double(asset.pixelWidth) / Double(asset.pixelHeight))
-        
-        let imageSize = CGSize(width: width, height: height)
-        let previewSize = UIScreen.main.bounds.size
-        
-        let scale = max(previewSize.width / imageSize.width, previewSize.height / imageSize.height)
-        
-        let targetSize = CGSize(width: imageSize.width * scale, height: imageSize.height * scale)
-        
-        return targetSize
-    }
-    
-    func sizeForAsset(asset: PHAsset) -> CGSize {
-        switch mode {
-        case .bigPhotoPreviews:
-            let minValue: CGFloat = UI.maxHeight / UI.multiplier
-            var size = CGSize.init(width: asset.pixelWidth, height: asset.pixelHeight)
-            let multiplier = UI.maxHeight / size.height
-            size.height *= multiplier
-            size.width = max(minValue, size.width*multiplier)
-            return size
-        case .normal:
-            let value: CGFloat = UI.maxHeight / UI.multiplier
-            return CGSize(width: value, height: value)
-        case .documentType:
-            return .zero
-        }
-    }
-    
-    func sizeForItem(item: StreamItem) -> CGSize {
-        switch item {
-        case .camera:
-            let side = UI.maxHeight / UI.multiplier
-            return CGSize.init(width: side, height: side)
-        case .photo(let asset), .video(let asset):
-            return sizeForAsset(asset: asset)
-        }
-    }
-    
     // MARK: Properties
     
     fileprivate lazy var collectionView: UICollectionView = { [unowned self] in
@@ -230,7 +179,6 @@ final public class TelegramPickerViewController: UIViewController {
         $0.showsVerticalScrollIndicator = false
         $0.showsHorizontalScrollIndicator = false
         $0.decelerationRate = UIScrollViewDecelerationRateFast
-        //        $0.contentInsetAdjustmentBehavior = .never
         $0.contentInset = UI.insets
         $0.backgroundColor = .clear
         $0.layer.masksToBounds = false
@@ -272,6 +220,8 @@ final public class TelegramPickerViewController: UIViewController {
     let selection: TelegramSelection
     let localizer: TelegramPickerResourceProvider
     
+    // MARK: - Funcs
+    
     // MARK: Initialize
     
     required public init(selection: @escaping TelegramSelection,
@@ -283,6 +233,47 @@ final public class TelegramPickerViewController: UIViewController {
     
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    func sizeForPreviewPreload(asset: PHAsset) -> CGSize {
+        let height: CGFloat = UI.maxHeight
+        let width: CGFloat = CGFloat(Double(height) * Double(asset.pixelWidth) / Double(asset.pixelHeight))
+        
+        let imageSize = CGSize(width: width, height: height)
+        let previewSize = UIScreen.main.bounds.size
+        
+        let scale = max(previewSize.width / imageSize.width, previewSize.height / imageSize.height)
+        
+        let targetSize = CGSize(width: imageSize.width * scale, height: imageSize.height * scale)
+        
+        return targetSize
+    }
+    
+    func sizeForAsset(asset: PHAsset) -> CGSize {
+        switch mode {
+        case .bigPhotoPreviews:
+            let minValue: CGFloat = UI.maxHeight / UI.multiplier
+            var size = CGSize.init(width: asset.pixelWidth, height: asset.pixelHeight)
+            let multiplier = UI.maxHeight / size.height
+            size.height *= multiplier
+            size.width = max(minValue, size.width*multiplier)
+            return size
+        case .normal:
+            let value: CGFloat = UI.maxHeight / UI.multiplier
+            return CGSize(width: value, height: value)
+        case .documentType:
+            return .zero
+        }
+    }
+    
+    func sizeForItem(item: StreamItem) -> CGSize {
+        switch item {
+        case .camera:
+            let side = UI.maxHeight / UI.multiplier
+            return CGSize.init(width: side, height: side)
+        case .photo(let asset), .video(let asset):
+            return sizeForAsset(asset: asset)
+        }
     }
     
     override public func loadView() {
@@ -342,16 +333,7 @@ final public class TelegramPickerViewController: UIViewController {
     
     func resetItems(assets: [PHAsset]) {
         
-        var newItems = assets.compactMap({ asset -> StreamItem? in
-            switch asset.mediaType {
-            case .video:
-                return StreamItem.video(asset)
-            case .image:
-                return StreamItem.photo(asset)
-            default:
-                return nil
-            }
-        })
+        var newItems = assets.compactMap({ StreamItem.init(asset: $0) })
         if shouldShowCameraStream {
             newItems.insert(.camera, at: 0)
         }
@@ -377,9 +359,7 @@ final public class TelegramPickerViewController: UIViewController {
     }
     
     func updatePhotos() {
-        checkStatus { [weak self] assets in
-            self?.resetItems(assets: assets)
-        }
+        checkStatus()
     }
     
     func setupCameraStream(_ completionHandler: @escaping (Camera.PreviewStream?) -> ()) {
@@ -430,20 +410,20 @@ final public class TelegramPickerViewController: UIViewController {
         }
     }
     
-    func checkStatus(completionHandler: @escaping ([PHAsset]) -> ()) {
+    func checkStatus() {
         Log("status = \(PHPhotoLibrary.authorizationStatus())")
         switch PHPhotoLibrary.authorizationStatus() {
             
         case .notDetermined:
             /// This case means the user is prompted for the first time for allowing contacts
             Assets.requestAccess { [unowned self] status in
-                self.checkStatus(completionHandler: completionHandler)
+                self.checkStatus()
             }
             
         case .authorized:
             /// Authorization granted by user for this app.
             DispatchQueue.main.async {
-                self.fetchPhotos(completionHandler: completionHandler)
+                self.runAssetsCollection()
             }
             
         case .denied, .restricted:
@@ -455,7 +435,80 @@ final public class TelegramPickerViewController: UIViewController {
         }
     }
     
+    func runAssetsCollection() {
+        assetsCollection.handler = { [weak self] event in
+            self?.handleAssetsCollectionEvent(event)
+        }
+        assetsCollection.start()
+    }
+    
+    func handleAssetsCollectionEvent(_ update: AssetsCollection.Event) {
+        
+        switch update {
+            
+        case .failure(let error):
+            if let alert = localizer.localizedAlert(failure: .error(error)) {
+                alert.show()
+            }
+            
+        case .fullReloadNeeded:
+            resetItems(assets: assetsCollection.assets)
+            
+        case .loaded:
+            resetItems(assets: assetsCollection.assets)
+            
+        case .update(let changes):
+            applyAssetsCollectionChanges(changes)
+            
+        }
+    }
+    
+    func applyAssetsCollectionChanges(_ changes: [AssetsCollectionChange]) {
+        let shouldShiftIndexes = shouldShowCameraStream
+        let changesToApply = shouldShiftIndexes ? AssetsCollectionChange.shift(changes: changes, offset: 1) : changes
+        
+        var insertionIndexPaths: [IndexPath] = []
+        var removalIndexPaths: [IndexPath] = []
+        
+        collectionView.performBatchUpdates({
+            changesToApply.forEach { (change) in
+                switch change {
+                case .inserted(let asset, at: let idx):
+                    
+                    Log("Collection view will insert asset at \(idx)")
+
+                    if let item = StreamItem.init(asset: asset) {
+                        items.insert(item, at: idx)
+                    }
+                    
+                    let indexPath = IndexPath.init(item: idx, section: 0)
+                    collectionView.insertItems(at: [indexPath])
+                    insertionIndexPaths.append(indexPath)
+                    
+                case .removed(_, at: let idx):
+                    
+                    Log("Collection view will remove asset at \(idx)")
+                    
+                    items.remove(at: idx)
+                    
+                    let indexPath = IndexPath.init(item: idx, section: 0)
+                    collectionView.deleteItems(at: [indexPath])
+                    removalIndexPaths.append(indexPath)
+                }
+            }
+            photoLayout.prepareForInsertion(insertionIndexPaths)
+            photoLayout.prepareForRemoval(removalIndexPaths)
+            
+        }) { [weak self] (_) in
+            self?.updateVisibleCellsVisibleAreaRects()
+           Log("Collection view updated after changes")
+        }
+        
+      
+    }
+    
     func fetchPhotos(completionHandler: @escaping ([PHAsset]) -> ()) {
+        
         Assets.fetch { [weak self] result in
             switch result {
                 
@@ -883,6 +936,30 @@ extension TelegramPickerViewController: GalleryItemsDelegate {
                 selection(TelegramSelectionType.photo(assets))
             }
         }
+    }
+    
+    
+    func title(for button: ButtonType) -> String {
+        
+        let localizableButton: LocalizableButtonType
+        
+        switch button {
+        case .photoOrVideo: localizableButton = .photoOrVideo
+        case .file: localizableButton = .file
+        case .location: localizableButton = .location
+        case .contact: localizableButton = .contact
+        case .sendPhotos: localizableButton = .photos(count: selectedAssets.count)
+        case .documentAsFile: localizableButton = .sendDocumentAsFile
+        case .photoAsFile: localizableButton = .sendPhotoAsFile(count: selectedAssets.count)
+        }
+        
+        return self.localizer.localized(buttonType: localizableButton)
+    }
+    
+    func font(for button: ButtonType) -> UIFont {
+        switch button {
+        case .sendPhotos: return UIFont.boldSystemFont(ofSize: 20)
+        default: return UIFont.systemFont(ofSize: 20) }
     }
     
 }
