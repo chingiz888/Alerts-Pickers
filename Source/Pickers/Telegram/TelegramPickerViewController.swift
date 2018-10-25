@@ -906,8 +906,11 @@ extension TelegramPickerViewController: UITableViewDataSource {
     
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: LikeButtonCell.identifier) as! LikeButtonCell
-        cell.textLabel?.font = font(for: buttons[indexPath.row])
-        cell.textLabel?.text = title(for: buttons[indexPath.row])
+        if let label = cell.textLabel {
+            label.font = font(for: buttons[indexPath.row])
+            label.text = title(for: buttons[indexPath.row])
+            label.textColor = view.tintColor
+        }
         return cell
     }
 }
