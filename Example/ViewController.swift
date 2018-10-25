@@ -406,6 +406,7 @@ class ViewController: UIViewController {
             
         case .telegramPicker:
             let alert = UIAlertController(style: .actionSheet)
+            alert.view.tintColor = UIColor.purple
             alert.addTelegramPicker(selection: { [weak alert] result in
                 switch result {
                 case .photo(let assets):
