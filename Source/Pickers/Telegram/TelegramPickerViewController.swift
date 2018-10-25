@@ -464,6 +464,7 @@ final public class TelegramPickerViewController: UIViewController {
     }
     
     func applyAssetsCollectionChanges(_ changes: [AssetsCollectionChange]) {
+        
         let shouldShiftIndexes = shouldShowCameraStream
         let changesToApply = shouldShiftIndexes ? AssetsCollectionChange.shift(changes: changes, offset: 1) : changes
         
@@ -475,8 +476,6 @@ final public class TelegramPickerViewController: UIViewController {
                 switch change {
                 case .inserted(let asset, at: let idx):
                     
-                    Log("Collection view will insert asset at \(idx)")
-
                     if let item = StreamItem.init(asset: asset) {
                         items.insert(item, at: idx)
                     }
@@ -486,8 +485,6 @@ final public class TelegramPickerViewController: UIViewController {
                     insertionIndexPaths.append(indexPath)
                     
                 case .removed(_, at: let idx):
-                    
-                    Log("Collection view will remove asset at \(idx)")
                     
                     items.remove(at: idx)
                     
@@ -501,10 +498,8 @@ final public class TelegramPickerViewController: UIViewController {
             
         }) { [weak self] (_) in
             self?.updateVisibleCellsVisibleAreaRects()
-           Log("Collection view updated after changes")
         }
         
-      
     }
     
     func fetchPhotos(completionHandler: @escaping ([PHAsset]) -> ()) {
@@ -625,6 +620,9 @@ final public class TelegramPickerViewController: UIViewController {
                 tableView.reloadData()
             }
             self.layout.mode = (newMode == .normal) ? .normal : .hidingFirstItem
+        }, completion: { [weak self] _ in
+            // Workaround. Remove when the whole "wrong selection mark layout" bug will be fixed.
+            self?.updateVisibleCellsVisibleAreaRects()
         })
     }
     
