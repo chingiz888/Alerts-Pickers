@@ -542,27 +542,54 @@ final public class TelegramPickerViewController: UIViewController {
                                                           itemsDelegate: self,
                                                           displacedViewsDataSource: self,
                                                           configuration: galleryConfiguration())
-        galleryViewController.selectionCompletion = { [weak self] button in
-            //TODO: check for galleryViewController asset is in selected
-            guard let item = self?.galleryItems[galleryViewController.currentIndex] else { return }
-            
-            switch item {
-            case .photo(let asset), .video(let asset):
-                if self?.selectedAssets.contains(asset) == true {
-                    self?.selectedAssets.remove(asset)
-                    button.isSelected = false
-                } else {
-                    self?.selectedAssets.append(asset)
-                    button.setTitle(String(self?.selectedAssets.count ?? 1), for: .selected)
-                    button.isSelected = true
-                }
-            default:
-                break
+        galleryViewController.selectionCompletion = { [weak self, weak galleryViewController] button in
+            if let picker = self, let controller = galleryViewController {
+                picker.handleGallerySelection(ofItemAt: indexPath, controller: controller, tappedButton: button)
             }
-            self?.updateVisibleSelectionIndexes()
-            self?.updateModeIfNeed(from: indexPath)
         }
         present(galleryViewController, animated: false, completion: nil)
+    }
+    
+    func switchSelection(streamItem: StreamItem) {
+        switch streamItem {
+        case .photo(let asset), .video(let asset):
+            if selectedAssets.contains(asset) {
+                selectedAssets.remove(asset)
+            }
+            else {
+                selectedAssets.append(asset)
+            }
+        default: break
+        }
+    }
+    
+    func isSelected(streamItem: StreamItem) -> Bool {
+        switch streamItem {
+        case .photo(let asset), .video(let asset):
+            return selectedAssets.contains(asset)
+        default:
+            return false
+        }
+    }
+    
+    func handleGallerySelection(ofItemAt indexPath: IndexPath, controller: GalleryViewController, tappedButton: UIButton) {
+        let item = galleryItems[controller.currentIndex]
+        
+        switchSelection(streamItem: item)
+        
+        let becomeSelected = isSelected(streamItem: item)
+        
+        if becomeSelected {
+            tappedButton.isSelected = true
+            tappedButton.setTitle(String(selectedAssets.count), for: .selected)
+        }
+        else {
+            tappedButton.isSelected = false
+        }
+        
+        updateVisibleSelectionIndexes()
+        updateModeIfNeed(from: indexPath)
+        updateSendButtonsTitleIfNeeded()
     }
     
     func updateVisibleSelectionIndexes() {
