@@ -22,6 +22,22 @@ open class VideoScrubber: UIControl {
     fileprivate var periodicObserver: AnyObject?
     fileprivate var stoppedSlidingTimeStamp = Date()
     
+    public enum PlaybackState {
+        case paused
+        case playing
+        case finished
+    }
+    
+    public private(set) var playbackState: PlaybackState = .paused {
+        didSet {
+            if oldValue != playbackState {
+                onDidChangePlaybackState?(playbackState)
+            }
+        }
+    }
+    
+    public var onDidChangePlaybackState: ((PlaybackState) -> ())? = nil
+    
     private let marginsRight: CGFloat = 16.0
 
     weak var player: AVPlayer? {
@@ -90,12 +106,14 @@ open class VideoScrubber: UIControl {
             self.periodicObserver = nil
         }
     }
-
+    
     @objc func didEndPlaying() {
 
         self.playButton.isHidden = true
         self.pauseButton.isHidden = true
         self.replayButton.isHidden = false
+        
+        self.playbackState = .finished
     }
 
     func setup() {
@@ -154,6 +172,10 @@ open class VideoScrubber: UIControl {
 
         else if keyPath == "rate" || keyPath == "status" {
 
+            if let player = player {
+                playbackState = player.isPlaying() ? .playing : .paused
+            }
+            
             self.update()
         }
     }

@@ -75,11 +75,14 @@ class VideoViewController: ItemBaseController<VideoView> {
         self.view.addSubview(embeddedPlayButton)
         embeddedPlayButton.center = self.view.boundsCenter
 
-        embeddedPlayButton.addTarget(self, action: #selector(playVideoInitially), for: UIControlEvents.touchUpInside)
+        embeddedPlayButton.addTarget(self, action: #selector(playVideoEmbedButtonTapped), for: UIControlEvents.touchUpInside)
 
         self.itemView.player = player
         self.itemView.contentMode = .scaleAspectFill
         self.scrubber.sendButton.addTarget(self, action: #selector(sendVideo(sender:)), for: .touchUpInside)
+        self.scrubber.onDidChangePlaybackState = { [weak self] _ in
+            self?.updateEmbeddedPlayButtonVisibility()
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -116,20 +119,26 @@ class VideoViewController: ItemBaseController<VideoView> {
         itemView.bounds.size = aspectFitSize(forContentOfSize: isLandscape ? fullHDScreenSizeLandscape : fullHDScreenSizePortrait, inBounds: self.scrollView.bounds.size)
         itemView.center = scrollView.boundsCenter
     }
-
-    @objc func playVideoInitially() {
-
-        self.player?.play()
-
-
-        UIView.animate(withDuration: 0.25, animations: { [weak self] in
-
-            self?.embeddedPlayButton.alpha = 0
-
-        }, completion: { [weak self] _ in
-
-            self?.embeddedPlayButton.isHidden = true
-        })
+    
+    override func scrollViewDidSingleTap() {
+       switchPlayblackState()
+    }
+    
+    private func switchPlayblackState() {
+        
+        switch scrubber.playbackState {
+        case .paused: scrubber.play()
+        case .finished: scrubber.replay()
+        case .playing: scrubber.pause()
+        }
+    }
+    
+    private func updateEmbeddedPlayButtonVisibility() {
+        embeddedPlayButton.alpha = scrubber.playbackState == .playing ? 0.0 : 1.0
+    }
+    
+    @objc func playVideoEmbedButtonTapped() {
+        switchPlayblackState()
     }
     
     @objc func sendVideo(sender: UIButton) {
