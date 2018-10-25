@@ -279,7 +279,12 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
         
         scrubber.alpha = 0
         
-        self.view.addSubview(scrubberBackgroundView)
+        if let button = sendButton, let idx = view.subviews.index(of: button) {
+            self.view.insertSubview(scrubberBackgroundView, at: idx)
+        }
+        else {
+            self.view.addSubview(scrubberBackgroundView)
+        }
         self.view.addSubview(scrubber)
     }
     
