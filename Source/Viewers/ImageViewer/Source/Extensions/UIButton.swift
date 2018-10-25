@@ -90,9 +90,9 @@ extension UIButton {
         return button
     }
 
-    static func closeButton(size: CGSize = CGSize(width: 40, height: 40)) -> UIButton {
+    static func closeButton(size: CGSize = CGSize(width: 30, height: 30)) -> UIButton {
         
-        let button = UIButton(frame: CGRect(origin: CGPoint.zero, size: CGSize(width: 50, height: 50)))
+        let button = UIButton(frame: CGRect(origin: CGPoint.zero, size: size))
 
         let bundle = Bundle(for: GalleryViewController.self)
         let closeImage = UIImage(named: "close", in: bundle, compatibleWith: nil)
@@ -118,7 +118,7 @@ extension UIButton {
         return button
     }
     
-    static func selectionButton(size: CGSize = CGSize(width: 40, height: 40)) -> UIButton {
+    static func selectionButton(size: CGSize = CGSize(width: 33, height: 33)) -> UIButton {
         let button = PickerCustomizableButton(frame: CGRect(origin: CGPoint.zero, size: size))
         
         let bundle = Bundle(for: GalleryViewController.self)
@@ -129,6 +129,10 @@ extension UIButton {
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor.white.cgColor
         button.setBackgroundImage(unselectedImage, for: .normal)
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOpacity = 0.2
+        button.layer.shadowRadius = 2
+        button.layer.shadowOffset = CGSize.zero
         
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: size.width / 2)
         button.setTitleColor(UIColor.white, for: .selected)
