@@ -26,16 +26,13 @@ class PhotoLayout: UICollectionViewLayout {
             
             let y = bounds.minY + selectionSize.height / 2.0 + selectionInset
             
-//            guard !area.isNull && !area.isEmpty else {
-//                return CGPoint(x: bounds.maxX - selectionSize.width / 2.0 - selectionInset, y: y)
-//            }
-            
-            let areaMaxX: CGFloat = area.isNull ? 0.0 : area.maxX
+            let visibleAreaMaxX: CGFloat = area.isNull ? 0.0 : area.maxX
+            let areaMaxX = min(visibleAreaMaxX, bounds.maxX)
             
             let minX = bounds.minX + selectionSize.width / 2.0 + selectionInset
-            let desiredX = areaMaxX - selectionSize.width / 2.0 - selectionInset
-            let x = max(minX, desiredX)
+            let desiredX = bounds.minX + areaMaxX - selectionSize.width / 2.0 - selectionInset
             
+            let x = max(minX, desiredX)
             
             let centerPoint = CGPoint(x: x, y: y)
             return centerPoint
@@ -195,7 +192,10 @@ class PhotoLayout: UICollectionViewLayout {
     }
     
     override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
-        return newBounds.height != collectionView.bounds.height
+        if newBounds.height != collectionView.bounds.height {
+            return true
+        }
+        return false
     }
     
     override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
