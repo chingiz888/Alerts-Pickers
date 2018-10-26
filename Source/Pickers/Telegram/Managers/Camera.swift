@@ -74,11 +74,17 @@ public final class Camera {
                 
                 session.beginConfiguration()
                 
-                session.setPresetsAlertnately([.high])
                 guard let device = createDevice() else {
                     completionHandler(.error(error: StreamError.deviceUnsupported))
                     return
                 }
+                
+                guard let preset = definePreset(session: session, device: device) else {
+                    completionHandler(.error(error: StreamError.deviceUnsupported))
+                    return
+                }
+                
+                session.sessionPreset = preset
                 
                 let input: AVCaptureDeviceInput
                 do {
@@ -105,6 +111,17 @@ public final class Camera {
                 
                 completionHandler(.stream(stream))
             }
+        }
+        
+        private static func definePreset(session: AVCaptureSession, device: AVCaptureDevice) -> AVCaptureSession.Preset? {
+            
+            let desiredPresets: [AVCaptureSession.Preset] = [.medium, .low, .high]
+            for preset in desiredPresets {
+                if session.canSetSessionPreset(preset) && device.supportsSessionPreset(preset) {
+                    return preset
+                }
+            }
+            return nil
         }
         
         private static func createQueue() -> DispatchQueue {
