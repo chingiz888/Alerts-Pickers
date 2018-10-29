@@ -47,7 +47,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     fileprivate var galleryPagingMode = GalleryPagingMode.standard
     fileprivate var headerLayout = HeaderLayout.center(25)
     fileprivate var footerLayout = FooterLayout.center(25)
-    fileprivate var closeLayout = ButtonLayout.pinLeft(8, 16)
+    fileprivate var closeLayout = ButtonLayout.pinLeft(12, 16)
     fileprivate var seeAllCloseLayout = ButtonLayout.pinRight(8, 16)
     fileprivate var thumbnailsLayout = ButtonLayout.pinRight(8, 8)
     fileprivate var deleteLayout = ButtonLayout.pinRight(8, 66)
