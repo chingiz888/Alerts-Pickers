@@ -8,9 +8,8 @@ private struct AssetManager: Hashable {
     
     internal let manager = PHCachingImageManager.init()
     
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(size.width)
-        hasher.combine(size.height)
+    var hashValue: Int {
+        return size.width.hashValue ^ size.height.hashValue
     }
 }
 
