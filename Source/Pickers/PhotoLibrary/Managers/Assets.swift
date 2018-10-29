@@ -2,7 +2,84 @@ import Foundation
 import UIKit
 import Photos
 
+private struct AssetManager: Hashable {
+    
+    internal var size: CGSize
+    
+    internal let manager = PHCachingImageManager.init()
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(size.width)
+        hasher.combine(size.height)
+    }
+}
+
 public struct Assets {
+    
+    public struct PreheatRequest {
+        
+        public let entries: [Entry]
+        
+        public struct Entry {
+            
+            public let asset: PHAsset
+            
+            public let size: CGSize
+            
+            public init (asset: PHAsset, size: CGSize) {
+                self.asset = asset
+                self.size = size
+            }
+            
+        }
+        
+        public class SizedAssetGroup {
+            
+            let size: CGSize
+            
+            var assets: [PHAsset] = []
+            
+            public init(size: CGSize) {
+                self.size = size
+            }
+            
+        }
+        
+        public var sizedAssetGroups: [SizedAssetGroup] {
+            
+            var groups: [SizedAssetGroup] = []
+            
+            func provideGroup(size: CGSize) -> SizedAssetGroup {
+                if let group = groups.first(where: {$0.size == size}) {
+                    return group
+                }
+                let newGroup = SizedAssetGroup.init(size: size)
+                groups.append(newGroup)
+                return newGroup
+            }
+            
+            for entry in entries {
+                let group = provideGroup(size: entry.size)
+                group.assets.append(entry.asset)
+            }
+            
+            return groups
+        }
+        
+    }
+    
+    private static var cacheManagers: [AssetManager] = []
+    
+    public static func cacheManager(size: CGSize) -> PHCachingImageManager {
+        if let managerEntry = cacheManagers.first(where: {$0.size == size}) {
+            return managerEntry.manager
+        }
+        
+        let newEntry = AssetManager.init(size: size)
+        newEntry.manager.allowsCachingHighQualityImages = false
+        cacheManagers.append(newEntry)
+        return newEntry.manager
+    }
     
     /// Requests access to the user's contacts
     ///
@@ -83,16 +160,22 @@ public struct Assets {
         case error(error: Error)
     }
     
-    public static func resolve(asset: PHAsset, size: CGSize = PHImageManagerMaximumSize, completion: @escaping (_ image: UIImage?) -> Void) {
+    public static func preheat(request: PreheatRequest) {
+        
+        for group in request.sizedAssetGroups {
+            let manager = cacheManager(size: group.size)
+            manager.startCachingImages(for: group.assets, targetSize: group.size, contentMode: .aspectFill, options: defaultImageRequestOptions)
+        }
+    }
+    
+    public static func resolve(asset: PHAsset, size: CGSize = PHImageManagerMaximumSize, cacheAllowed: Bool = true, completion: @escaping (_ image: UIImage?) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
-            let imageManager = PHImageManager.default()
             
-            let requestOptions = PHImageRequestOptions()
-            requestOptions.deliveryMode = .highQualityFormat
-            requestOptions.resizeMode = .exact
-            requestOptions.isNetworkAccessAllowed = true
+            let manager: PHImageManager = cacheAllowed ? cacheManager(size: size) : PHImageManager.default()
             
-            imageManager.requestImage(for: asset, targetSize: size, contentMode: .aspectFill, options: requestOptions) { image, info in
+            let requestOptions = defaultImageRequestOptions
+            
+            manager.requestImage(for: asset, targetSize: size, contentMode: .aspectFill, options: requestOptions) { image, info in
                 DispatchQueue.main.async {
                     completion(image)
                 }
@@ -100,16 +183,14 @@ public struct Assets {
         }
     }
     
-    public static func resolveVideo(asset: PHAsset, size: CGSize = PHImageManagerMaximumSize, completion: @escaping (_ image: URL?) -> Void) {
+    public static func resolveVideo(asset: PHAsset, size: CGSize = PHImageManagerMaximumSize, cacheAllowed: Bool = true, completion: @escaping (_ image: URL?) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
             
-            let imageManager = PHImageManager.default()
+            let manager: PHImageManager = cacheAllowed ? cacheManager(size: size) : PHImageManager.default()
             
-            let options: PHVideoRequestOptions = PHVideoRequestOptions()
-            options.version = .original
-            options.isNetworkAccessAllowed = true
+            let options: PHVideoRequestOptions = defaultVideoRequestOptions
             
-            imageManager.requestAVAsset(forVideo: asset, options: options) { (asset, audioMix, info) in
+            manager.requestAVAsset(forVideo: asset, options: options) { (asset, audioMix, info) in
                 DispatchQueue.main.async {
                     if let urlAsset = asset as? AVURLAsset {
                         completion(urlAsset.url)
@@ -119,6 +200,21 @@ public struct Assets {
                 }
             }
         }
+    }
+    
+    private static var defaultVideoRequestOptions: PHVideoRequestOptions {
+        let options: PHVideoRequestOptions = PHVideoRequestOptions()
+        options.version = .original
+        options.isNetworkAccessAllowed = true
+        return options
+    }
+    
+    private static var defaultImageRequestOptions: PHImageRequestOptions {
+        let options = PHImageRequestOptions()
+        options.deliveryMode = .highQualityFormat
+        options.resizeMode = .exact
+        options.isNetworkAccessAllowed = true
+        return options
     }
     
     /// Result Enum

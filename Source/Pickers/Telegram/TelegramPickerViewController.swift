@@ -57,6 +57,13 @@ final public class TelegramPickerViewController: UIViewController {
             }
         }
         
+        var asset: PHAsset? {
+            switch self {
+            case .camera: return nil
+            case .photo(let asset), .video(let asset): return asset
+            }
+        }
+        
         public static func == (lhs: StreamItem, rhs: StreamItem) -> Bool {
             switch (lhs, rhs) {
             case (let .photo(lhsAsset), let .photo(rhsAsset)): return lhsAsset == rhsAsset
@@ -119,6 +126,8 @@ final public class TelegramPickerViewController: UIViewController {
     }
     
     // MARK: - Vars
+    
+    private static let preheatingLength = 20
     
     fileprivate var mode = Mode.normal
     
@@ -396,17 +405,10 @@ final public class TelegramPickerViewController: UIViewController {
             
         case .denied, .restricted:
             /// User has denied the current app to access the camera.
-            let productName = Bundle.main.dlgpicker_appName
-            let alert = UIAlertController(style: .alert, title: "Permission denied", message: "\(productName) does not have access to camera. Please, allow the application to access to camera.")
-            alert.addAction(title: "Settings", style: .destructive) { action in
-                if let settingsURL = URL(string: UIApplicationOpenSettingsURLString) {
-                    UIApplication.shared.open(settingsURL)
-                }
+            let alert = localizer.localizedAlert(failure: .noAccessToCamera)
+            if let alert = alert {
+                alert.show()
             }
-            alert.addAction(title: "OK", style: .cancel) { [unowned self] action in
-                self.alertController?.dismiss(animated: true)
-            }
-            alert.show()
         }
     }
     
@@ -762,14 +764,14 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
     private func dequeue(_ collectionView: UICollectionView,
                          cellForAsset asset: PHAsset,
                          at indexPath: IndexPath) -> UICollectionViewCell {
-        var cell: CollectionViewCustomContentCell<UIImageView>!
+        var cell: CollectionViewCustomContentCell<UIImageView>
         switch asset.mediaType {
         case .video:
             cell = dequeue(collectionView, id: .video, indexPath: indexPath)
         default:
             cell = dequeue(collectionView, id: .photo, indexPath: indexPath)
         }
-        cell.customContentView.image = nil
+        
         return cell
     }
     
@@ -779,22 +781,25 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
     
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         
+        preheatNextItems(at: indexPath)
+        
         switch items[indexPath.item] {
-        //TODO: Add Cell for video
+            
         case .photo(let asset):
             guard let photoCell = cell as? CollectionViewPhotoCell else {
                 return
             }
+            
+            photoCell.isLoading = true
+            
             photoCell.delegate = self
             let size = sizeForPreviewPreload(asset: asset)
             updateAssetSelection(cell: photoCell, asset: asset, at: indexPath)
-            DispatchQueue.main.async {
-                // We must sure that cell still visible and represents same asset
-                Assets.resolve(asset: asset, size: size) { [weak self] new in
-                    self?.updatePhoto(new, asset: asset)
-                    photoCell.customContentView.image = new
-                }
+            // We must sure that cell still visible and represents same asset
+            Assets.resolve(asset: asset, size: size) { [weak self] new in
+                self?.updatePhoto(new, asset: asset)
             }
+            
         case .video(let asset):
             guard let videoCell = cell as? CollectionViewVideoCell else {
                 return
@@ -802,13 +807,9 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
             videoCell.delegate = self
             let size = sizeForPreviewPreload(asset: asset)
             updateAssetSelection(cell: videoCell, asset: asset, at: indexPath)
-            DispatchQueue.main.async {
-                // We must sure that cell still visible and represents same asset
-                Assets.resolve(asset: asset, size: size) { [weak self] new in
-                    self?.updatePhoto(new, asset: asset)
-                    videoCell.customContentView.image = new
-                    videoCell.updateVideo(duration: asset.duration)
-                }
+            // We must sure that cell still visible and represents same asset
+            Assets.resolve(asset: asset, size: size) { [weak self] new in
+                self?.updatePhoto(new, asset: asset)
             }
             
         case .camera:
@@ -820,6 +821,29 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
         }
         
         self.updateVisibleAreaRect(cell: cell, indexPath: indexPath)
+    }
+    
+    private func preheatNextItems(at indexPath: IndexPath) {
+        
+        guard let lastIdx = items.indices.last else {
+            return
+        }
+        
+        let upperBound = min(indexPath.item + TelegramPickerViewController.preheatingLength, lastIdx)
+        let lowerBound = indexPath.item + 1
+        guard upperBound > lowerBound else {
+            return
+        }
+        
+        let range = lowerBound..<upperBound
+        let streamItemsToPreheat = items[range]
+        let assetsToPreheat = streamItemsToPreheat.compactMap({$0.asset})
+        
+        let preheatEntries = assetsToPreheat.map({
+            Assets.PreheatRequest.Entry.init(asset: $0, size: sizeForAsset(asset: $0))
+        })
+        let request = Assets.PreheatRequest.init(entries: preheatEntries)
+        Assets.preheat(request: request)
     }
     
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -857,6 +881,12 @@ extension TelegramPickerViewController: UICollectionViewDataSource {
             case .photo(let itemAsset):
                 if asset == itemAsset, let cell = collectionView.cellForItem(at: entry.indexPath) as? CollectionViewPhotoCell {
                     cell.customContentView.image = photo
+                    cell.isLoading = false
+                }
+            case .video(let itemAsset):
+                if asset == itemAsset, let cell = collectionView.cellForItem(at: entry.indexPath) as? CollectionViewVideoCell {
+                    cell.customContentView.image = photo
+                    cell.updateVideo(duration: asset.duration)
                 }
             default:
                 continue
