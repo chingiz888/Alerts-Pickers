@@ -409,7 +409,7 @@ class ViewController: UIViewController {
             alert.view.tintColor = UIColor.purple
             alert.addTelegramPicker(selection: { [weak alert] result in
                 switch result {
-                case .photo(let assets):
+                case .media(let assets):
                     Log(assets)
                 case .photoLibrary:
                     Log("photo library")

@@ -5,7 +5,7 @@ import Photos
 public typealias TelegramSelection = (TelegramSelectionType) -> ()
 
 public enum TelegramSelectionType {
-    case photo([PHAsset])
+    case media([PHAsset])
     case photoLibrary
     case location(Location?)
     case contact(Contact?)
@@ -125,9 +125,16 @@ final public class TelegramPickerViewController: UIViewController {
         static let multiplier: CGFloat = 2
     }
     
+    public enum DismissBehavior {
+        case dismissGaleryFirst(animated: Bool, thenDismissPickerAnimated: Bool)
+        case dismissPicker(animated: Bool)
+    }
+    
     // MARK: - Vars
     
     private static let preheatingLength = 20
+    
+    public var dismissBehavior: DismissBehavior = .dismissPicker(animated: true)
     
     fileprivate var mode = Mode.normal
     
@@ -228,15 +235,18 @@ final public class TelegramPickerViewController: UIViewController {
     
     let selection: TelegramSelection
     let localizer: TelegramPickerResourceProvider
+    let configurator: TelegramPickerConfigurator
     
     // MARK: - Funcs
     
     // MARK: Initialize
     
     required public init(selection: @escaping TelegramSelection,
-                         localizer: TelegramPickerResourceProvider) {
+                         localizer: TelegramPickerResourceProvider,
+                         configurator: TelegramPickerConfigurator = SimpleTelegramPickerConfigurator()) {
         self.selection = selection
         self.localizer = localizer
+        self.configurator = configurator
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -539,11 +549,16 @@ final public class TelegramPickerViewController: UIViewController {
     func openPreview(with asset: PHAsset, at indexPath: IndexPath) {
         
         let galleryItemIndex = galleryItems.index(of: items[indexPath.item]) ?? 0
+        
+        var config = galleryConfiguration()
+        self.configurator.modifyGalleryConfig(&config)
+        
         let galleryViewController = GalleryViewController(startIndex: galleryItemIndex,
                                                           itemsDataSource: createGalleryItemsDataSource(),
                                                           itemsDelegate: self,
                                                           displacedViewsDataSource: self,
-                                                          configuration: galleryConfiguration())
+                                                          configuration: config)
+        
         galleryViewController.selectionCompletion = { [weak self, weak galleryViewController] button in
             if let picker = self, let controller = galleryViewController {
                 picker.handleGallerySelection(ofItemAt: indexPath, controller: controller, tappedButton: button)
@@ -700,7 +715,7 @@ final public class TelegramPickerViewController: UIViewController {
             let assets = selectedAssets
             let selection = self.selection
             alertController?.dismiss(animated: true) {
-                selection(TelegramSelectionType.photo(assets))
+                selection(TelegramSelectionType.media(assets))
             }
             
         case .file:
@@ -987,15 +1002,38 @@ extension TelegramPickerViewController: GalleryItemsDelegate {
                 break
             }
         }
-        galleryViewController.closeGallery(true) {
-            let assets = self.selectedAssets
-            let selection = self.selection
-            self.alertController?.dismiss(animated: true) {
-                selection(TelegramSelectionType.photo(assets))
+        
+        let assets = self.selectedAssets
+        let selection = self.selection
+        
+        self.parent?.presentingViewController?.dismiss(animated: true, completion: {
+            selection(TelegramSelectionType.media(assets))
+        })
+    }
+    
+    func dismiss(galleryViewController: GalleryViewController, behavior: DismissBehavior) {
+        
+        let assets = self.selectedAssets
+        let selection = self.selection
+        
+        switch behavior {
+            
+        case .dismissGaleryFirst(animated: let galeryAnimated, thenDismissPickerAnimated: let pickerAnimated):
+            galleryViewController.closeGallery(galeryAnimated) {
+                self.alertController?.dismiss(animated: pickerAnimated) {
+                    selection(TelegramSelectionType.media(assets))
+                }
+            }
+            
+        case .dismissPicker(animated: let animated):
+            guard let alert = self.parent, let alertPresenter = alert.presentingViewController else {
+                return
+            }
+            alertPresenter.dismiss(animated: animated) {
+                selection(TelegramSelectionType.media(assets))
             }
         }
     }
-    
     
     func title(for button: ButtonType) -> String {
         

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D71CAE0E2188386000B22700 /* TelegramPickerConfigurator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D71CAE0D2188386000B22700 /* TelegramPickerConfigurator.swift */; };
 		D725CCC5216CBE6D001A6974 /* TelegramPickerResourceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D725CCC4216CBE6D001A6974 /* TelegramPickerResourceProvider.swift */; };
 		D725CCC8216CD16F001A6974 /* ExampleTelegramPickerLocalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D725CCC7216CD16F001A6974 /* ExampleTelegramPickerLocalizer.swift */; };
 		D7361716217F35BC0015D824 /* TelegramPickerGalleryItemsDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7361715217F35BC0015D824 /* TelegramPickerGalleryItemsDataSource.swift */; };
@@ -126,6 +127,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D71CAE0D2188386000B22700 /* TelegramPickerConfigurator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramPickerConfigurator.swift; sourceTree = "<group>"; };
 		D725CCC4216CBE6D001A6974 /* TelegramPickerResourceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramPickerResourceProvider.swift; sourceTree = "<group>"; };
 		D725CCC7216CD16F001A6974 /* ExampleTelegramPickerLocalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleTelegramPickerLocalizer.swift; sourceTree = "<group>"; };
 		D7361715217F35BC0015D824 /* TelegramPickerGalleryItemsDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelegramPickerGalleryItemsDataSource.swift; sourceTree = "<group>"; };
@@ -475,6 +477,7 @@
 				D77815DF21677CC700DA6613 /* Managers */,
 				FA7CE67720125F0A00FB3E72 /* TelegramPickerViewController.swift */,
 				D725CCC4216CBE6D001A6974 /* TelegramPickerResourceProvider.swift */,
+				D71CAE0D2188386000B22700 /* TelegramPickerConfigurator.swift */,
 				D7361715217F35BC0015D824 /* TelegramPickerGalleryItemsDataSource.swift */,
 				FAAB5C93201BCC5D00CCE04D /* Layouts */,
 				FAAB5C94201BCC6500CCE04D /* Views */,
@@ -859,6 +862,7 @@
 				D725CCC5216CBE6D001A6974 /* TelegramPickerResourceProvider.swift in Sources */,
 				F27C7E4321771E5300266414 /* CGPoint.swift in Sources */,
 				F27C7E3D21771E5300266414 /* GalleryItemsDataSource.swift in Sources */,
+				D71CAE0E2188386000B22700 /* TelegramPickerConfigurator.swift in Sources */,
 				FAAB5CA0201BD4B000CCE04D /* ItemWithImage.swift in Sources */,
 				D77815E321677D4700DA6613 /* Camera.swift in Sources */,
 				F27C7E4721771E5300266414 /* AVPlayer.swift in Sources */,
