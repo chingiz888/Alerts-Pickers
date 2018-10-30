@@ -24,7 +24,11 @@ extension UIAlertController {
     public func addTelegramPicker(selection: @escaping TelegramSelection,
                                   localizer: TelegramPickerResourceProvider) {
         let vc = TelegramPickerViewController(selection: selection, localizer: localizer)
-        set(vc: vc)
+        setTelegramPicker(vc)
+    }
+    
+    public func setTelegramPicker(_ picker: TelegramPickerViewController) {
+        set(vc: picker)
     }
 }
 
